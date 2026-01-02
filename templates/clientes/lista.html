@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Clientes - Sistema de Ventas{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="{% static 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
+{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-users"></i> Gestión de Clientes
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/dashboard/">Home</a></li>
+                    <li class="breadcrumb-item">Clientes</li>
+                    <li class="breadcrumb-item active">Lista</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Mensajes de alerta -->
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    <i class="icon fas fa-check"></i> {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Tarjetas de estadísticas -->
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ clientes.count }}</h3>
+                <p>Total Clientes</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ clientes|length }}</h3>
+                <p>Clientes Activos</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón para crear cliente -->
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{% url 'clientes:exportar_excel' %}" class="btn btn-secondary">
+            <i class="fas fa-file-excel"></i> Exportar
+        </a>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalImportarExcel">
+            <i class="fas fa-file-upload"></i> Importar
+        </button>
+        <a href="{% url 'clientes:crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Cliente
+        </a>
+    </div>
+</div>
+
+<!-- Tabla de clientes -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-list"></i> Listado de Clientes
+        </h3>
+    </div>
+    <div class="card-body">
+        <table id="tablaClientes" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Fecha Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>{{ cliente.id_cliente }}</td>
+                    <td>
+                        <strong>{{ cliente.nombre_completo }}</strong>
+                    </td>
+                    <td>
+                        <a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a>
+                    </td>
+                    <td>{{ cliente.telefono }}</td>
+                    <td>{{ cliente.direccion|truncatewords:5 }}</td>
+                    <td>{{ cliente.fecha_registro|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-info" onclick="verDetalle('{{ cliente.id_cliente }}')"
+                                title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <a href="{% url 'clientes:editar' cliente.id_cliente %}" class="btn btn-warning"
+                                title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-danger"
+                                onclick="eliminarCliente('{{ cliente.id_cliente }}', '{{ cliente.nombre_completo }}')"
+                                title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <i class="fas fa-info-circle"></i> No hay clientes registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Ver Detalles -->
+<div class="modal fade" id="modalDetalles" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i> Detalles del Cliente
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="detallesContent">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                    <p>Cargando información...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar Excel -->
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" role="dialog" aria-labelledby="modalImportarExcelLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalImportarExcelLabel">Importar Clientes desde Excel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{% url 'clientes:importar_excel' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="excel_file">Seleccionar archivo Excel (.xlsx)</label>
+                        <input type="file" name="excel_file" id="excel_file" class="form-control" accept=".xlsx, .xls"
+                            required>
+                        <small class="form-text text-muted">
+                            El archivo debe tener las siguientes columnas: ID, Nombre, Apellido, RUC, Email, Teléfono,
+                            Dirección...
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables -->
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<!-- SweetAlert2 -->
+<script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+
+<script>
+    $(document).ready(function () {
+        // Inicializar DataTable
+        $('#tablaClientes').DataTable({
+            "responsive": true,
+            "autoWidth": false,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+            },
+            "order": [[5, 'desc']] // Ordenar por fecha de registro
+        });
+
+        // Auto-cerrar alertas después de 5 segundos
+        setTimeout(function () {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    });
+
+    // Función para ver detalles del cliente
+    function verDetalle(clienteId) {
+        $('#modalDetalles').modal('show');
+
+        $.ajax({
+            url: `/cliente/${clienteId}/detalle/`,
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function (data) {
+                let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-id-card"></i> Información Personal</h5>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID Cliente:</th>
+                                <td>${data.id_cliente}</td>
+                            </tr>
+                            <tr>
+                                <th>Nombre:</th>
+                                <td>${data.nombre} ${data.apellido}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td><a href="mailto:${data.email}">${data.email}</a></td>
+                            </tr>
+                            <tr>
+                                <th>Teléfono:</th>
+                                <td>${data.telefono}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-map-marker-alt"></i> Dirección</h5>
+                        <p>${data.direccion}</p>
+                        <hr>
+                        <h5><i class="fas fa-calendar"></i> Fecha de Registro</h5>
+                        <p>${data.fecha_registro}</p>
+                    </div>
+                </div>
+            `;
+
+                $('#detallesContent').html(html);
+            },
+            error: function () {
+                $('#detallesContent').html('<p class="text-danger">Error al cargar los detalles</p>');
+            }
+        });
+    }
+
+    // Función para eliminar cliente
+    function eliminarCliente(clienteId, clienteNombre) {
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: `Se eliminará el cliente "${clienteNombre}". Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Crear formulario para enviar POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/cliente/${clienteId}/eliminar/`;
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Estadísticas de Acceso - Sistema{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">
+        <i class="fas fa-chart-bar"></i> Estadísticas de Acceso
+    </h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row">
+    <!-- Cards de resumen -->
+    <div class="col-md-3">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ total_logins }}</h3>
+                <p>Total de Entradas</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <a href="{% url 'usuarios:registro_acceso' %}?tipo_evento=LOGIN" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>{{ total_logouts }}</h3>
+                <p>Total de Salidas</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <a href="{% url 'usuarios:registro_acceso' %}?tipo_evento=LOGOUT" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ usuarios_activos }}</h3>
+                <p>Usuarios Activos</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <a href="{% url 'usuarios:registro_acceso' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="small-box bg-secondary">
+            <div class="inner">
+                <h3>{{ dias }}</h3>
+                <p>Días Analizados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Opciones de período -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Seleccionar Período</h3>
+            </div>
+            <div class="card-body">
+                <label class="mr-3">Mostrar últimos:</label>
+                <a href="?dias=7" class="btn btn-sm {% if dias == 7 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-2">
+                    7 días
+                </a>
+                <a href="?dias=30" class="btn btn-sm {% if dias == 30 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-2">
+                    30 días
+                </a>
+                <a href="?dias=90" class="btn btn-sm {% if dias == 90 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-2">
+                    90 días
+                </a>
+                <a href="?dias=365" class="btn btn-sm {% if dias == 365 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    1 año
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top usuarios más activos -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-fire"></i> Top 10 Usuarios Más Activos
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if usuarios_mas_activos %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="bg-dark">
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Usuario</th>
+                                    <th>Accesos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usuario in usuarios_mas_activos %}
+                                    <tr>
+                                        <td>
+                                            <strong>#{{ forloop.counter }}</strong>
+                                        </td>
+                                        <td>
+                                            <strong>{{ usuario.user__first_name }} {{ usuario.user__last_name }}</strong>
+                                            <small class="text-muted d-block">@{{ usuario.user__username }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-primary">{{ usuario.count }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Último acceso de usuarios -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-user-clock"></i> Último Acceso por Usuario
+                </h3>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% if ultimo_acceso_usuarios %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                {% for item in ultimo_acceso_usuarios %}
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td>
+                                            <strong>{{ item.usuario.get_full_name|default:item.usuario.username }}</strong>
+                                            <small class="text-muted d-block">@{{ item.usuario.username }}</small>
+                                        </td>
+                                        <td class="text-right">
+                                            {% if item.dias_sin_acceso == 0 %}
+                                                <span class="badge badge-success">HOY</span>
+                                            {% elif item.dias_sin_acceso == 1 %}
+                                                <span class="badge badge-warning">AYER</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Hace {{ item.dias_sin_acceso }}d</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td colspan="2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> {{ item.ultimo_acceso|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen general -->
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-info-circle"></i> Resumen del Período
+                </h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Período analizado:</strong> 
+                    Últimos {{ dias }} días (desde {{ fecha_inicio|date:"d/m/Y" }})
+                </p>
+                <p>
+                    <strong>Total de registros:</strong> 
+                    <span class="badge badge-info">{{ total_logins|add:total_logouts }}</span>
+                </p>
+                <p>
+                    <strong>Usuarios con acceso:</strong> 
+                    <span class="badge badge-primary">{{ usuarios_activos }}</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card footer -->
+<div class="row mt-3">
+    <div class="col-md-12">
+        <a href="{% url 'usuarios:registro_acceso' %}" class="btn btn-secondary">
+            <i class="fas fa-history"></i> Ver Registro Detallado
+        </a>
+        <a href="{% url 'usuarios:lista_personal' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Personal
+        </a>
+        <button type="button" class="btn btn-info" onclick="location.reload();" style="float: right;">
+            <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+{% endblock content %}

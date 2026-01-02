@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Historial de Ventas{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Historial de Ventas</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Registro de Transacciones</h3>
+            <div class="card-tools">
+                <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            
+            <table id="ventas-table" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Venta</th>
+                        <th>Cliente</th>
+                        <th>Atendido Por</th>
+                        <th>Fecha Venta</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <td>{{ venta.id_venta }}</td>
+                        <td>{{ venta.cliente.nombre|default:"Consumidor Final" }}</td>
+                        <td>{{ venta.antendido_por.username|default:"N/A" }}</td>
+                        <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                        <td>${{ venta.total|floatformat:2 }}</td>
+                        <td>
+                            <a href="{% url 'ventas:generar_ticket' venta.id_venta %}" target="_blank" class="btn btn-info btn-xs" title="Ver Ticket"><i class="fas fa-receipt"></i></a>
+                            <a href="{% url 'ventas:generar_factura_sri' venta.id_venta %}" target="_blank" class="btn btn-warning btn-xs" title="Ver Factura SRI"><i class="fas fa-file-invoice"></i></a>
+                            <a href="{% url 'ventas:descargar_comprobante_pdf' venta.id_venta %}" target="_blank" class="btn btn-danger btn-xs" title="Descargar PDF"><i class="fas fa-file-pdf"></i></a>
+                            <button 
+                                type="button" 
+                                class="btn btn-xs enviar-email-btn"
+                                data-venta-id="{{ venta.id_venta }}"
+                                data-email-enviado="{{ venta.email_enviado }}"
+                                title="{% if venta.email_enviado %}Email enviado{% else %}Enviar por email{% endif %}"
+                            >
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <div class="d-inline-block ml-1">
+                                <span 
+                                    class="email-status badge"
+                                    data-venta-id="{{ venta.id_venta }}"
+                                    style="background-color: {% if venta.email_enviado %}#28a745{% else %}#6c757d{% endif %}; cursor: pointer;"
+                                    title="{% if venta.email_enviado %}Email enviado{% else %}Pendiente{% endif %}"
+                                >
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay transacciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+            
+        <!-- Paginación Simple -->
+        <div class="card-footer">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div class="mb-2 mb-md-0">
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-list"></i> 
+                        Mostrando <strong>{{ ventas.start_index }}-{{ ventas.end_index }}</strong> 
+                        de <strong>{{ ventas.paginator.count }}</strong> ventas
+                    </p>
+                </div>
+                
+                <nav aria-label="Navegación de páginas">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Primera página -->
+                        <li class="page-item {% if not ventas.has_previous %}disabled{% endif %}">
+                            <a class="page-link" href="?page=1" aria-label="Primera">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Anterior -->
+                        <li class="page-item {% if not ventas.has_previous %}disabled{% endif %}">
+                            <a class="page-link" href="?page={% if ventas.has_previous %}{{ ventas.previous_page_number }}{% else %}#{% endif %}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Número de página actual -->
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        <!-- Siguiente -->
+                        <li class="page-item {% if not ventas.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="?page={% if ventas.has_next %}{{ ventas.next_page_number }}{% else %}#{% endif %}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Última página -->
+                        <li class="page-item {% if not ventas.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="?page={{ ventas.paginator.num_pages }}" aria-label="Última">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Ir a página específica -->
+                <div class="mt-2 mt-md-0">
+                    <div class="input-group input-group-sm" style="width: 120px;">
+                        <input type="number" 
+                               class="form-control" 
+                               id="goToPage" 
+                               min="1" 
+                               max="{{ ventas.paginator.num_pages }}" 
+                               value="{{ ventas.number }}"
+                               placeholder="Página">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button" id="goToPageBtn">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Función para ir a página específica
+            const goToPageBtn = document.getElementById('goToPageBtn');
+            const goToPageInput = document.getElementById('goToPage');
+            
+            if (goToPageBtn && goToPageInput) {
+                goToPageBtn.addEventListener('click', function() {
+                    const pageNum = parseInt(goToPageInput.value);
+                    const maxPage = parseInt('{{ ventas.paginator.num_pages }}');
+                    
+                    if (pageNum >= 1 && pageNum <= maxPage) {
+                        window.location.href = `?page=${pageNum}`;
+                    } else {
+                        alert(`Por favor ingrese un número entre 1 y ${maxPage}`);
+                    }
+                });
+                
+                // Permitir Enter en el input
+                goToPageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        goToPageBtn.click();
+                    }
+                });
+            }
+        </script>
+
+    <style>
+        .email-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            vertical-align: middle;
+        }
+        .email-status[data-email-enviado="False"] {
+            background-color: #6c757d;
+        }
+        .email-status[data-email-enviado="True"] {
+            background-color: #28a745;
+        }
+    </style>
+
+    <script>
+        document.querySelectorAll('.enviar-email-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ventaId = this.dataset.ventaId;
+                const emailEnviado = this.dataset.emailEnviado === 'True';
+                
+                if (emailEnviado) {
+                    alert('El email para esta venta ya ha sido enviado.');
+                    return;
+                }
+                
+                // Confirmación
+                if (!confirm('¿Deseas enviar esta venta por correo electrónico?')) {
+                    return;
+                }
+                
+                // Deshabilitar botón mientras se envía
+                this.disabled = true;
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                // Enviar petición AJAX
+                fetch(`{% url 'ventas:enviar_email' 0 %}`.replace('0', ventaId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cambiar color del badge a verde
+                        const badge = document.querySelector(`.email-status[data-venta-id="${ventaId}"]`);
+                        if (badge) {
+                            badge.style.backgroundColor = '#28a745';
+                        }
+                        
+                        // Actualizar el atributo del botón
+                        this.dataset.emailEnviado = 'True';
+                        this.disabled = true;
+                        this.style.opacity = '0.5';
+                        
+                        // Mostrar mensaje de éxito
+                        showAlert('success', data.message);
+                    } else {
+                        showAlert('error', data.message);
+                        this.disabled = false;
+                    }
+                    this.innerHTML = originalHtml;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'Error al enviar el email');
+                    this.disabled = false;
+                    this.innerHTML = originalHtml;
+                });
+            });
+        });
+        
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+            
+            // Insertar al inicio del contenido
+            const cardBody = document.querySelector('.card-body');
+            cardBody.insertBefore(alertDiv, cardBody.firstChild);
+            
+            // Auto-cerrar después de 5 segundos
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+{% endblock content %}

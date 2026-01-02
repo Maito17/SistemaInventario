@@ -1,0 +1,76 @@
+{% extends 'base.html' %} 
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-2xl">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <h2 class="text-3xl font-bold text-gray-800">Detalle del Producto</h2>
+        <a href="{% url 'inventario:lista' %}" 
+           class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Volver al Listado
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-lg">
+        <!-- Columna 1 -->
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm font-semibold text-gray-500">ID del Producto:</p>
+                <p class="font-extrabold text-2xl text-gray-900">{{ producto.pk }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Nombre:</p>
+                <p class="text-gray-800">{{ producto.nombre }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">SKU/Código:</p>
+                <p class="text-gray-800">{{ producto.sku|default_if_none:"N/A" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Descripción:</p>
+                <p class="text-gray-800 text-sm italic">{{ producto.descripcion|default_if_none:"Sin descripción" }}</p>
+            </div>
+        </div>
+        
+        <!-- Columna 2 -->
+        <div class="space-y-4">
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Precio de Venta:</p>
+                <!-- Asumo que el campo se llama 'precio_venta' o 'precio' en tu modelo -->
+                <p class="text-green-600 font-bold text-xl">${{ producto.precio|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Stock Actual:</p>
+                <!-- Asumo que el campo se llama 'cantidad' o 'stock' en tu modelo -->
+                <p class="font-bold text-xl {% if producto.stock <= 5 %}text-red-500{% else %}text-blue-600{% endif %}">
+                    {{ producto.stock }} unidades
+                </p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Categoría:</p>
+                <p class="text-gray-800">{{ producto.categoria.nombre|default_if_none:"Sin Categoría" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Proveedor:</p>
+                <p class="text-gray-800">{{ producto.proveedor.nombre|default_if_none:"Sin Proveedor" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t flex justify-end space-x-3">
+        <!-- Revisa que 'inventario:generar_qr' sea el nombre correcto de tu URL -->
+        <a href="{% url 'inventario:generar_qr' pk=producto.pk %}" target="_blank"
+            class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition duration-150 text-sm">
+            Generar QR
+        </a>
+        <!-- Revisa que 'inventario:editar_producto' sea el nombre correcto de tu URL -->
+        <a href="{% url 'inventario:editar_producto' pk=producto.pk %}"
+            class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition duration-150 text-sm">
+            Editar Producto
+        </a>
+    </div>
+</div>
+{% endblock content %}

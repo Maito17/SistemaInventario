@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registro de Acceso - Sistema de Entrada/Salida{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">
+        <i class="fas fa-history"></i> Registro de Acceso (Entrada/Salida)
+    </h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            Historial de Accesos al Sistema
+        </h3>
+        <div class="card-tools">
+            <span class="badge badge-primary">
+                Total: {{ total_registros }} registros
+            </span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Filtros -->
+        <form method="GET" class="mb-3">
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="usuario_id">Usuario:</label>
+                    <select name="usuario_id" id="usuario_id" class="form-control form-control-sm">
+                        <option value="">-- Todos --</option>
+                        {% for usuario in usuarios %}
+                            <option value="{{ usuario.id }}" {% if usuario.id == usuario_id_seleccionado %}selected{% endif %}>
+                                {{ usuario.get_full_name|default:usuario.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="tipo_evento">Evento:</label>
+                    <select name="tipo_evento" id="tipo_evento" class="form-control form-control-sm">
+                        <option value="">-- Todos --</option>
+                        <option value="LOGIN" {% if tipo_evento_seleccionado == 'LOGIN' %}selected{% endif %}>Entrada</option>
+                        <option value="LOGOUT" {% if tipo_evento_seleccionado == 'LOGOUT' %}selected{% endif %}>Salida</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="fecha_inicio">Desde:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control form-control-sm" value="{{ fecha_inicio }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="fecha_fin">Hasta:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm" value="{{ fecha_fin }}">
+                </div>
+
+                <div class="col-md-4" style="padding-top: 30px;">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'usuarios:registro_acceso' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-redo"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Tabla de registros -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="tabla-registro">
+                <thead class="bg-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th><i class="fas fa-sign-in-alt"></i> Evento</th>
+                        <th><i class="fas fa-clock"></i> Fecha y Hora</th>
+                        <th><i class="fas fa-globe"></i> IP Address</th>
+                        <th><i class="fas fa-hourglass-half"></i> Duración</th>
+                        <th>Notas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                        <tr>
+                            <td>
+                                <strong>{{ registro.user.username }}</strong>
+                            </td>
+                            <td>
+                                {{ registro.user.first_name }} {{ registro.user.last_name }}
+                            </td>
+                            <td>
+                                {% if registro.tipo_evento == 'LOGIN' %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check"></i> Entrada
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-times"></i> Salida
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-info">
+                                    {{ registro.fecha_hora|date:"d/m/Y H:i:s" }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if registro.ip_address %}
+                                    <code>{{ registro.ip_address }}</code>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if registro.duracion_sesion %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-clock"></i> {{ registro.duracion_formateada }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if registro.notas %}
+                                    <small>{{ registro.notas|truncatewords:8 }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'usuarios:registro_acceso_usuario' registro.user.id %}" 
+                                   class="btn btn-sm btn-info" title="Ver historial del usuario">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox"></i> No hay registros de acceso
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if usuario_id_seleccionado %}&usuario_id={{ usuario_id_seleccionado }}{% endif %}{% if tipo_evento_seleccionado %}&tipo_evento={{ tipo_evento_seleccionado }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">
+                                Primera
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if usuario_id_seleccionado %}&usuario_id={{ usuario_id_seleccionado }}{% endif %}{% if tipo_evento_seleccionado %}&tipo_evento={{ tipo_evento_seleccionado }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">
+                                &laquo; Anterior
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if usuario_id_seleccionado %}&usuario_id={{ usuario_id_seleccionado }}{% endif %}{% if tipo_evento_seleccionado %}&tipo_evento={{ tipo_evento_seleccionado }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if usuario_id_seleccionado %}&usuario_id={{ usuario_id_seleccionado }}{% endif %}{% if tipo_evento_seleccionado %}&tipo_evento={{ tipo_evento_seleccionado }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">
+                                Siguiente &raquo;
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if usuario_id_seleccionado %}&usuario_id={{ usuario_id_seleccionado }}{% endif %}{% if tipo_evento_seleccionado %}&tipo_evento={{ tipo_evento_seleccionado }}{% endif %}{% if fecha_inicio %}&fecha_inicio={{ fecha_inicio }}{% endif %}{% if fecha_fin %}&fecha_fin={{ fecha_fin }}{% endif %}">
+                                Última
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'usuarios:lista_personal' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Personal
+        </a>
+        <a href="{% url 'usuarios:estadisticas_acceso' %}" class="btn btn-info" style="float: right;">
+            <i class="fas fa-chart-bar"></i> Ver Estadísticas
+        </a>
+        <button type="button" class="btn btn-primary mr-2" onclick="location.reload();" style="float: right; margin-right: 5px;">
+            <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+{% endblock content %}

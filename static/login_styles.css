@@ -1,0 +1,176 @@
+/* ---------------------------------- */
+/* Base & Typography                  */
+/* ---------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+    color: #fff;
+}
+
+/* Estilos de fondo animado y efecto de cristal (Glassmorphism) */
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------------------------------- */
+/* Input & Button Effects             */
+/* ---------------------------------- */
+
+/* Efecto de enfoque en input */
+.input-focus {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.input-focus:focus {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(255, 255, 255, 0.1);
+}
+
+/* Efecto de hover en botón (con brillo) */
+.btn-hover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.btn-hover:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+}
+.btn-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+.btn-hover:hover::before {
+    left: 100%;
+}
+
+/* ---------------------------------- */
+/* Animations (Keyframes)             */
+/* ---------------------------------- */
+.fade-in { animation: fadeIn 1s ease-out; }
+.slide-up { animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+.shake { animation: shake 0.5s ease-in-out; }
+.bounce-in { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+.breathing { animation: breathing 4s ease-in-out infinite; }
+.pulse-ring { animation: pulse-ring 3s infinite; }
+
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(50px) rotateX(10deg); } to { opacity: 1; transform: translateY(0) rotateX(0deg); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes bounceIn { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 50% { transform: scale(1.05) rotate(2deg); } 70% { transform: scale(0.9) rotate(-1deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+@keyframes breathing { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } 100% { transform: scale(2.5); opacity: 0; } }
+
+/* ---------------------------------- */
+/* Background Effects (Parallax)      */
+/* ---------------------------------- */
+.parallax-bg { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: -1; 
+}
+.star { 
+    position: absolute; 
+    background: white; 
+    border-radius: 50%; 
+    animation: twinkle 2s infinite; 
+}
+@keyframes twinkle { 
+    0%, 100% { opacity: 0.3; transform: scale(1); } 
+    50% { opacity: 1; transform: scale(1.2); } 
+}
+.particle { 
+    position: absolute; 
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 50%; 
+    pointer-events: none; 
+    animation: particleFloat 6s linear infinite; 
+}
+@keyframes particleFloat { 
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 
+    10% { opacity: 1; } 
+    90% { opacity: 1; } 
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } 
+}
+
+/* Efecto Ripple (Ondas) */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+@keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+/* Estilos para mensajes de error (estos se usaban si no hay errores de Django) */
+.error-message {
+    background-color: rgba(255, 99, 71, 0.2); 
+    color: #ff6347; 
+    border: 1px solid rgba(255, 99, 71, 0.5);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-top: 1.5rem;
+    font-weight: 500;
+    /* display: none; */ /* El JS/Django controlará esto */
+}
+
+/* ------------------------------------------------------------------- */
+/* 7. Mensajes de Error y Animación */
+/* ------------------------------------------------------------------- */
+
+.error-message {
+    /* ... (estilos de fondo, borde, etc.) ... */
+    background-color: rgba(248, 113, 133, 0.2); /* pink-400 con opacidad */
+    border: 1px solid #f974e6; /* Borde rosa/rojo */
+    color: #f974e6;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    transition: all 0.3s ease-in-out;
+    
+    /* CORRECCIÓN CLAVE 1: Oculta por defecto si no tiene la clase 'visible' */
+    /* La clase 'hidden' de Tailwind es 'display: none', así que la usamos */
+    display: none; 
+}
+
+/* Permitimos que la clase 'hidden' de Tailwind tenga prioridad */
+.error-message.hidden {
+    display: none !important; 
+}
+
+/* Hacemos visible cuando JavaScript lo decida */
+.error-message.is-visible {
+    display: flex;
+}
+
+/* Animación de Agitar (Shake) */
+.shake {
+    animation: shake 0.5s ease-in-out;
+}

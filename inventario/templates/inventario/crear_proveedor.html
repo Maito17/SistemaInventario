@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Proveedor{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Registrar Nuevo Proveedor</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card card-primary">
+        <div class="card-header">
+            <h3 class="card-title">Información del Proveedor</h3>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                
+                <div class="card-header bg-dark p-2 mb-3">
+                    <h5 class="card-title m-0">Información del Proveedor</h5>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.id_proveedor.label_tag }}
+                    {{ form.id_proveedor }}
+                </div>
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                </div>
+                <div class="form-group">
+                    {{ form.contacto.label_tag }}
+                    {{ form.contacto }}
+                </div>
+                
+                <div class="card-header bg-dark p-2 mb-3 mt-4">
+                    <h5 class="card-title m-0">Detalles de Contacto</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.telefono.label_tag }}
+                    {{ form.telefono }}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        Por favor, corrige los errores del formulario.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Guardar Proveedor</button>
+                <a href="{% url 'inventario:proveedores_lista' %}" class="btn btn-default float-right">Cancelar</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

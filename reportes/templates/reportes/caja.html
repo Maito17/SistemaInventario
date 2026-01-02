@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Caja{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-cash-register"></i> Reporte de Caja
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Caja</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="card card-primary collapsed-card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Filtros</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="display: none;">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_inicio" class="mr-2">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" 
+                       value="{{ fecha_inicio }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_fin" class="mr-2">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" 
+                       value="{{ fecha_fin }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="usuario" class="mr-2">Usuario:</label>
+                <select name="usuario" id="usuario" class="form-control">
+                    <option value="">-- Todos --</option>
+                    {% for user in usuarios %}
+                    <option value="{{ user.id }}" {% if user.id|stringformat:"s" == usuario_id %}selected{% endif %}>
+                        {{ user.get_full_name|default:user.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="estado" class="mr-2">Estado:</label>
+                <select name="estado" id="estado" class="form-control">
+                    <option value="">-- Todos --</option>
+                    <option value="ABIERTA" {% if estado == 'ABIERTA' %}selected{% endif %}>Abierta</option>
+                    <option value="CERRADA" {% if estado == 'CERRADA' %}selected{% endif %}>Cerrada</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-unlock"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Cajas Abiertas</span>
+                <span class="info-box-number">${{ total_abierta|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon bg-danger"><i class="fas fa-lock"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Cajas Cerradas</span>
+                <span class="info-box-number">${{ total_cerrada|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="info-box">
+            <span class="info-box-icon {% if total_diferencia >= 0 %}bg-success{% else %}bg-warning{% endif %}">
+                <i class="fas fa-chart-line"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">Diferencia Total</span>
+                <span class="info-box-number">${{ total_diferencia|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Cajas -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Registro de Cajas</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Fecha</th>
+                        <th>Apertura</th>
+                        <th>Monto Inicial</th>
+                        <th>Estado</th>
+                        <th>Monto Cierre</th>
+                        <th>Diferencia</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for caja in cajas %}
+                    <tr>
+                        <td><strong>{{ caja.user.get_full_name|default:caja.user.username }}</strong></td>
+                        <td>{{ caja.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ caja.timestamp_apertura|time:"H:i:s" }}</td>
+                        <td>${{ caja.monto_inicial|floatformat:2 }}</td>
+                        <td>
+                            {% if caja.estado == 'ABIERTA' %}
+                                <span class="badge badge-success">Abierta</span>
+                            {% else %}
+                                <span class="badge badge-danger">Cerrada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if caja.monto_cierre %}
+                                ${{ caja.monto_cierre|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if caja.monto_cierre %}
+                                {% with diff=caja.monto_cierre|add:caja.monto_inicial|mul:-1 %}
+                                    <span class="{% if diff >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ diff|floatformat:2 }}
+                                    </span>
+                                {% endwith %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ caja.observaciones|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No hay cajas registradas en este período
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

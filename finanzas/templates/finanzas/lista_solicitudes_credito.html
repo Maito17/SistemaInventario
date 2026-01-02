@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solicitudes de Crédito{% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Solicitudes de Crédito</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Inicio</a></li>
+          <li class="breadcrumb-item active">Solicitudes</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h3 class="card-title">
+                  <i class="fas fa-list"></i> Listado de Solicitudes
+                </h3>
+              </div>
+              <div class="col-md-6 text-right">
+                <a href="{% url 'finanzas:crear_solicitud_credito' %}" class="btn btn-success btn-sm">
+                  <i class="fas fa-plus"></i> Nueva Solicitud
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Filtros -->
+          <div class="card-body border-bottom">
+            <form method="GET" class="form-inline">
+              <div class="form-group mr-2">
+                <label for="estado" class="mr-2">Estado:</label>
+                <select name="estado" id="estado" class="form-control form-control-sm">
+                  <option value="">Todos</option>
+                  <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                  <option value="APROBADA" {% if estado_filter == 'APROBADA' %}selected{% endif %}>Aprobada</option>
+                  <option value="RECHAZADA" {% if estado_filter == 'RECHAZADA' %}selected{% endif %}>Rechazada</option>
+                  <option value="CANCELADA" {% if estado_filter == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fas fa-filter"></i> Filtrar
+              </button>
+            </form>
+          </div>
+          
+          <!-- Tabla -->
+          <div class="card-body">
+            {% if solicitudes %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="bg-light">
+                    <tr>
+                      <th style="width: 8%">ID</th>
+                      <th style="width: 20%">Cliente</th>
+                      <th style="width: 15%">Monto</th>
+                      <th style="width: 12%">Plazo</th>
+                      <th style="width: 15%">Estado</th>
+                      <th style="width: 15%">Fecha Solicitud</th>
+                      <th style="width: 15%">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for solicitud in solicitudes %}
+                      <tr>
+                        <td><strong>#{{ solicitud.id }}</strong></td>
+                        <td>
+                          <i class="fas fa-user text-primary"></i> 
+                          <a href="#" title="{{ solicitud.cliente.email }}">
+                            {{ solicitud.cliente.nombre }}
+                          </a>
+                        </td>
+                        <td>
+                          <span class="badge badge-success">${{ solicitud.monto_solicitado|floatformat:2 }}</span>
+                        </td>
+                        <td>
+                          <span class="badge badge-info">{{ solicitud.plazo_dias }} días</span>
+                        </td>
+                        <td>
+                          {% if solicitud.estado == 'PENDIENTE' %}
+                            <span class="badge badge-warning">Pendiente</span>
+                          {% elif solicitud.estado == 'APROBADA' %}
+                            <span class="badge badge-success">Aprobada</span>
+                          {% elif solicitud.estado == 'RECHAZADA' %}
+                            <span class="badge badge-danger">Rechazada</span>
+                          {% else %}
+                            <span class="badge badge-secondary">Cancelada</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <small class="text-muted">
+                            {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}
+                          </small>
+                        </td>
+                        <td>
+                          <div class="btn-group btn-group-sm" role="group">
+                            <a href="{% url 'finanzas:detalle_solicitud_credito' solicitud.id %}" 
+                               class="btn btn-info" title="Ver Detalles">
+                              <i class="fas fa-eye"></i>
+                            </a>
+                            {% if solicitud.estado == 'PENDIENTE' %}
+                              <a href="{% url 'finanzas:aprobar_solicitud_credito' solicitud.id %}" 
+                                 class="btn btn-success" title="Aprobar">
+                                <i class="fas fa-check"></i>
+                              </a>
+                              <a href="{% url 'finanzas:rechazar_solicitud_credito' solicitud.id %}" 
+                                 class="btn btn-danger" title="Rechazar">
+                                <i class="fas fa-times"></i>
+                              </a>
+                            {% endif %}
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Paginación -->
+              {% if paginator.num_pages > 1 %}
+                <nav aria-label="Paginación">
+                  <ul class="pagination">
+                    {% if solicitudes.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page=1">Primera</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ solicitudes.previous_page_number }}">Anterior</a>
+                      </li>
+                    {% endif %}
+                    
+                    {% for num in paginator.page_range %}
+                      {% if solicitudes.number == num %}
+                        <li class="page-item active">
+                          <span class="page-link">{{ num }}</span>
+                        </li>
+                      {% else %}
+                        <li class="page-item">
+                          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    
+                    {% if solicitudes.has_next %}
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ solicitudes.next_page_number }}">Siguiente</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="?page={{ paginator.num_pages }}">Última</a>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              {% endif %}
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No hay solicitudes de crédito registradas.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

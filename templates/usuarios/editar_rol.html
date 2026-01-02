@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load permisos_filters %}
+
+{% block title %}Editar Rol{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Editar Rol: {{ rol.name }}</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'usuarios:lista_roles' %}">Roles</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-shield"></i> Editar Datos del Rol
+                    </h3>
+                </div>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="nombre">Nombre del Rol <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                                           value="{{ rol.name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-users"></i> Este rol tiene <strong>{{ rol.user_set.count }}</strong> usuario(s) asignado(s).
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h5>Permisos</h5>
+                        <p class="text-muted">Selecciona los permisos que tendrá este rol:</p>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <input type="text" id="searchPermisos" class="form-control mb-3" 
+                                           placeholder="Buscar permisos...">
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="selectAll">
+                                    Seleccionar Todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">
+                                    Deseleccionar Todos
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-bordered table-sm table-hover">
+                                <thead class="thead-light sticky-top">
+                                    <tr>
+                                        <th width="5%"></th>
+                                        <th width="20%">Aplicación</th>
+                                        <th width="30%">Modelo</th>
+                                        <th width="45%">Permiso</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permisosTable">
+                                    {% regroup permisos by content_type.app_label as permisos_agrupados %}
+                                    {% for app in permisos_agrupados %}
+                                        {% for permiso in app.list %}
+                                        <tr class="permiso-row">
+                                            <td class="text-center">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input permiso-check" 
+                                                           id="perm_{{ permiso.id }}" name="permisos" value="{{ permiso.id }}"
+                                                           {% if permiso.id in permisos_rol %}checked{% endif %}>
+                                                    <label class="custom-control-label" for="perm_{{ permiso.id }}"></label>
+                                                </div>
+                                            </td>
+                                            <td class="app-label">{{ permiso.content_type.app_label }}</td>
+                                            <td class="model-name">{{ permiso.content_type.model }}</td>
+                                            <td class="perm-name">
+                                                <strong>{{ permiso.name|traducir_permiso }}</strong>
+                                                <br><small class="text-muted">{{ permiso.codename }}</small>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'usuarios:lista_roles' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchPermisos').addEventListener('keyup', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#permisosTable .permiso-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+
+// Seleccionar todos
+document.getElementById('selectAll').addEventListener('click', function() {
+    document.querySelectorAll('.permiso-check').forEach(checkbox => {
+        if (checkbox.closest('tr').style.display !== 'none') {
+            checkbox.checked = true;
+        }
+    });
+});
+
+// Deseleccionar todos
+document.getElementById('deselectAll').addEventListener('click', function() {
+    document.querySelectorAll('.permiso-check').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte Financiero{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-chart-line"></i> Reporte Financiero
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Financiero</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="card card-primary collapsed-card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Filtros</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="display: none;">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_inicio" class="mr-2">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" 
+                       value="{{ fecha_inicio }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_fin" class="mr-2">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" 
+                       value="{{ fecha_fin }}">
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen Financiero Principal -->
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success">
+                <h3 class="card-title"><i class="fas fa-arrow-up"></i> Ingresos</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-success">${{ ingresos|floatformat:2 }}</h2>
+                    <p class="text-muted">Ingresos totales del período</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger">
+                <h3 class="card-title"><i class="fas fa-arrow-down"></i> Gastos</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-danger">${{ gastos|floatformat:2 }}</h2>
+                    <p class="text-muted">Gastos totales del período</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Utilidad Neta -->
+<div class="row mt-2">
+    <div class="col-md-12">
+        <div class="card {% if utilidad_neta >= 0 %}bg-light-success{% else %}bg-light-danger{% endif %}">
+            <div class="card-header {% if utilidad_neta >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                <h3 class="card-title"><i class="fas fa-check-circle"></i> Utilidad Neta</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h1 class="{% if utilidad_neta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ utilidad_neta|floatformat:2 }}
+                    </h1>
+                    <p class="text-muted">Ganancia o pérdida neta del período</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cuentas por Cobrar y Pagar -->
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info">
+                <h3 class="card-title"><i class="fas fa-users"></i> Cuentas por Cobrar</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-info">${{ cuentas_por_cobrar|floatformat:2 }}</h2>
+                    <p class="text-muted">Dinero que clientes deben</p>
+                </div>
+                <div class="alert alert-info" role="alert">
+                    <strong>Nota:</strong> Estas son las cuentas en estado pendiente o parcialmente pagadas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h3 class="card-title"><i class="fas fa-building"></i> Cuentas por Pagar</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-warning">${{ cuentas_por_pagar|floatformat:2 }}</h2>
+                    <p class="text-muted">Dinero que debemos a proveedores</p>
+                </div>
+                <div class="alert alert-warning" role="alert">
+                    <strong>Nota:</strong> Estas son las cuentas en estado pendiente o parcialmente pagadas
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Flujo de Caja -->
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-water"></i> Flujo de Caja</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Ingresos</strong></td>
+                        <td class="text-right text-success"><strong>${{ ingresos|floatformat:2 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gastos</strong></td>
+                        <td class="text-right text-danger"><strong>-${{ gastos|floatformat:2 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Flujo Operativo</strong></td>
+                        <td class="text-right">
+                            <strong>${{ utilidad_neta|floatformat:2 }}</strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-light-success {
+        background-color: #d4edda;
+    }
+    .bg-light-danger {
+        background-color: #f8d7da;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Proveedores{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Lista de Proveedores</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Proveedores Registrados</h3>
+            <div class="card-tools">
+                {# 🛑 ASEGÚRATE QUE TIENE inventario: #}
+                <a href="{% url 'inventario:proveedor_crear' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Agregar Nuevo Proveedor
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <table id="proveedores-table" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Proveedor</th>
+                        <th>Nombre</th>
+                        <th>Contacto</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proveedor in proveedores %}
+                    <tr>
+                        <td>{{ proveedor.id_proveedor }}</td>
+                        <td>{{ proveedor.nombre }}</td>
+                        <td>{{ proveedor.contacto }}</td>
+                        <td>{{ proveedor.telefono }}</td>
+                        <td>{{ proveedor.email }}</td>
+                        <td>
+                            <a href="{% url 'inventario:editar_proveedor' proveedor.pk %}" 
+                               class="btn btn-warning btn-xs" 
+                               title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'inventario:eliminar_proveedor' proveedor.pk %}" 
+                               class="btn btn-danger btn-xs" 
+                               title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay proveedores registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% include "includes/pagination.html" %}
+    </div>
+{% endblock content %}

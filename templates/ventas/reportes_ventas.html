@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Ventas por Período{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Reporte de Ventas por Período</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Reporte de Ventas</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Resumen de Período -->
+    {% if cantidad_ventas > 0 %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ cantidad_ventas }}</h3>
+                    <p>Ventas Realizadas</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>${{ total_general|floatformat:2 }}</h3>
+                    <p>Total de Ingresos</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>${{ total_general|floatformat:0 }}</h3>
+                    <p>Promedio por Venta</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3>{{ fecha_inicio|date:"d M" }} - {{ fecha_fin|date:"d M" }}</h3>
+                    <p>Período Consultado</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> Ventas Diarias
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filtro de fechas -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_inicio">Fecha Inicio</label>
+                                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio"
+                                        value="{{ fecha_inicio|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_fin">Fecha Fin</label>
+                                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
+                                        value="{{ fecha_fin|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Gráfico -->
+                    <div class="mb-4">
+                        <h5>Tendencia de Ventas por Día</h5>
+                        <canvas id="ventasChart" style="max-height: 400px;"></canvas>
+                    </div>
+
+                    <!-- Tabla de ventas diarias -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th class="text-right">Total Ventas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if ventas_diarias %}
+                                    {% for venta in ventas_diarias %}
+                                    <tr>
+                                        <td>{{ venta.dia_formateado }}</td>
+                                        <td class="text-right">
+                                            <strong>${{ venta.suma_total|floatformat:2 }}</strong>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">
+                                        No hay ventas en el período seleccionado ({{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }}).
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                            {% if ventas_diarias %}
+                            <tfoot>
+                                <tr class="table-success font-weight-bold">
+                                    <td>TOTAL GENERAL</td>
+                                    <td class="text-right">${{ total_general|floatformat:2 }}</td>
+                                </tr>
+                            </tfoot>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Datos para el gráfico
+    const ventasDatos = {{ ventas_diarias|safe }};
+    
+    console.log('Datos recibidos:', ventasDatos);
+    
+    if (ventasDatos && ventasDatos.length > 0) {
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        
+        // Procesar datos
+        const labels = ventasDatos.map(v => {
+            // v.dia es un string ISO (YYYY-MM-DD)
+            const fecha = new Date(v.dia + 'T00:00:00');
+            return fecha.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+        });
+        
+        const datos = ventasDatos.map(v => parseFloat(v.suma_total));
+        
+        console.log('Labels:', labels);
+        console.log('Datos:', datos);
+        
+        const ventasChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas Diarias ($)',
+                    data: datos,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: 'rgb(75, 192, 192)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(2);
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Monto ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        // Si no hay datos, mostrar mensaje
+        document.getElementById('ventasChart').style.display = 'none';
+    }
+</script>
+{% endblock %}

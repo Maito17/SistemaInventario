@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Usuario{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Eliminar Usuario</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'usuarios:lista_usuarios' %}">Usuarios</a></li>
+                    <li class="breadcrumb-item active">Eliminar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h3>
+                </div>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <h5><i class="icon fas fa-ban"></i> Atención!</h5>
+                            ¿Estás seguro de que deseas eliminar este usuario?
+                        </div>
+
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="40%">Usuario:</th>
+                                <td><strong>{{ usuario.username }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ usuario.email|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Nombre:</th>
+                                <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Grupos:</th>
+                                <td>
+                                    {% for grupo in usuario.groups.all %}
+                                    <span class="badge badge-info">{{ grupo.name }}</span>
+                                    {% empty %}
+                                    <span class="text-muted">Sin grupos</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i> Esta acción no se puede deshacer.
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sí, Eliminar
+                        </button>
+                        <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

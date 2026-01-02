@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Compras{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Gestión de Compras</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Registro de Compras</h3>
+            <div class="card-tools">
+                <a href="{% url 'inventario:crear_compra' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Nueva Compra
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if compras %}
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Compra</th>
+                        <th>Proveedor</th>
+                        <th>Fecha Compra</th>
+                        <th>Fecha Recibida</th>
+                        <th>Número Documento</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td>#{{ compra.id_compra }}</td>
+                        <td>{{ compra.proveedor.nombre }}</td>
+                        <td>{{ compra.fecha_compra|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if compra.fecha_recibida %}
+                                {{ compra.fecha_recibida|date:"d/m/Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ compra.numero_documento|default:"N/A" }}</td>
+                        <td>${{ compra.total|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if compra.estado == 'PAGADA' %}badge-success
+                                {% elif compra.estado == 'RECIBIDA' %}badge-info
+                                {% elif compra.estado == 'PENDIENTE' %}badge-warning
+                                {% else %}badge-danger{% endif %}">
+                                {{ compra.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'inventario:editar_compra' compra.id_compra %}" class="btn btn-primary btn-xs" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'inventario:generar_qr_compra' compra.id_compra %}" class="btn btn-info btn-xs" title="Imprimir QR">
+                                <i class="fas fa-qrcode"></i>
+                            </a>
+                            <a href="{% url 'admin:inventario_compra_delete' compra.id_compra %}" class="btn btn-danger btn-xs" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Paginación -->
+            {% if compras.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if compras.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ compras.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Primera</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Anterior</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                            {% if compras.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if compras.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ compras.next_page_number }}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paginator.num_pages }}">Última</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Siguiente</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Última</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <div class="text-center text-muted small mt-2">
+                    Mostrando página {{ compras.number }} de {{ paginator.num_pages }} 
+                    ({{ paginator.count }} compras totales)
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No hay compras registradas.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

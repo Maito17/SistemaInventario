@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nueva Compra{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Nueva Compra</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Información de la Compra</h3>
+    </div>
+    
+    <form method="POST" class="form-horizontal">
+        {% csrf_token %}
+        <div class="card-body">
+            <!-- Información Principal -->
+            <div class="form-group row">
+                <label for="proveedor" class="col-sm-2 col-form-label">Proveedor *</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="proveedor" name="proveedor" required>
+                        <option value="">-- Selecciona un proveedor --</option>
+                        {% for proveedor in proveedores %}
+                            <option value="{{ proveedor.id_proveedor }}">{{ proveedor.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="numero_documento" class="col-sm-2 col-form-label">Número de Factura/Documento</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="numero_documento" name="numero_documento" placeholder="Ej: FAC-001-2025">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="estado" class="col-sm-2 col-form-label">Estado</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="estado" name="estado">
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="RECIBIDA">Recibida</option>
+                        <option value="CANCELADA">Cancelada</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Detalles de Compra -->
+            <h4 class="mt-4 mb-3">Detalles de la Compra</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="detalles-table">
+                    <thead>
+                        <tr>
+                            <th>Producto *</th>
+                            <th>Cantidad Recibida *</th>
+                            <th>Costo Unitario *</th>
+                            <th>Subtotal</th>
+                            <th>Fecha de Caducidad</th>
+                            <th>Método de Pago</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detalles-tbody">
+                        <tr class="detalle-row">
+                            <td>
+                                <select class="form-control producto-select" name="detalles-0-producto" required>
+                                    <option value="">-- Selecciona un producto --</option>
+                                    {% for producto in productos %}
+                                        <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_costo }}">
+                                            {{ producto.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control cantidad-input" name="detalles-0-cantidad_recibida" min="1" required>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control costo-input" name="detalles-0-costo_unitario" step="0.01" min="0" required>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control subtotal-display" name="detalles-0-subtotal_display" disabled>
+                            </td>
+                            <td>
+                                <input type="date" class="form-control" name="detalles-0-fecha_caducidad">
+                            </td>
+                            <td>
+                                <select class="form-control" name="detalles-0-metodo_pago">
+                                    <option value="">-- Sin método --</option>
+                                    {% for metodo in metodos_pago %}
+                                        <option value="{{ metodo.id }}">{{ metodo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm eliminar-detalle">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <input type="hidden" id="detalles-TOTAL_FORMS" name="detalles-TOTAL_FORMS" value="1">
+
+            <button type="button" class="btn btn-secondary mt-3" id="agregar-detalle">
+                <i class="fas fa-plus"></i> Agregar Otro Producto
+            </button>
+
+            <div class="alert alert-info mt-3">
+                <strong>Total Compra:</strong> $<span id="total-compra">0.00</span>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Compra
+            </button>
+            <a href="{% url 'inventario:lista_compras' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .detalle-row {
+        vertical-align: middle;
+    }
+    
+    .detalle-row input,
+    .detalle-row select {
+        margin: 0;
+    }
+</style>
+
+<script>
+    let detalleCount = 1;
+
+    document.getElementById('agregar-detalle').addEventListener('click', function() {
+        const tbody = document.getElementById('detalles-tbody');
+        const newRow = document.querySelector('.detalle-row').cloneNode(true);
+        
+        // Actualizar los nombres de los campos
+        newRow.querySelectorAll('input, select').forEach(field => {
+            const name = field.name;
+            if (name) {
+                field.name = name.replace(/detalles-\d+/, `detalles-${detalleCount}`);
+                field.value = '';
+            }
+        });
+        
+        tbody.appendChild(newRow);
+        
+        // Agregar event listeners al nuevo detalle
+        agregarEventListenersDetalle(newRow);
+        
+        // Actualizar contador
+        detalleCount++;
+        document.getElementById('detalles-TOTAL_FORMS').value = detalleCount;
+    });
+
+    function agregarEventListenersDetalle(row) {
+        const cantidadInput = row.querySelector('.cantidad-input');
+        const costoInput = row.querySelector('.costo-input');
+        const subtotalDisplay = row.querySelector('.subtotal-display');
+        const eliminarBtn = row.querySelector('.eliminar-detalle');
+
+        // Calcular subtotal
+        function calcularSubtotal() {
+            const cantidad = parseFloat(cantidadInput.value) || 0;
+            const costo = parseFloat(costoInput.value) || 0;
+            const subtotal = cantidad * costo;
+            subtotalDisplay.value = subtotal.toFixed(2);
+            calcularTotalCompra();
+        }
+
+        cantidadInput.addEventListener('change', calcularSubtotal);
+        costoInput.addEventListener('change', calcularSubtotal);
+
+        // Eliminar detalle
+        eliminarBtn.addEventListener('click', function() {
+            if (document.querySelectorAll('.detalle-row').length > 1) {
+                row.remove();
+                detalleCount--;
+                document.getElementById('detalles-TOTAL_FORMS').value = detalleCount;
+                calcularTotalCompra();
+            } else {
+                alert('Debes tener al menos un detalle en la compra');
+            }
+        });
+    }
+
+    function calcularTotalCompra() {
+        let total = 0;
+        document.querySelectorAll('.subtotal-display').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        document.getElementById('total-compra').textContent = total.toFixed(2);
+    }
+
+    // Agregar event listeners a todos los detalles existentes
+    document.querySelectorAll('.detalle-row').forEach(row => {
+        agregarEventListenersDetalle(row);
+    });
+</script>
+{% endblock content %}

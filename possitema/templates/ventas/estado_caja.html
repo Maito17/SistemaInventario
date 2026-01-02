@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .gradient-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px 10px 0 0;
+    }
+    .stat-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        border: 2px solid;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .stat-inicial {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+    .stat-ingresos {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    }
+    .stat-esperado {
+        border-color: #ffc107;
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    }
+    .btn-cerrar-caja {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        transition: all 0.3s ease;
+    }
+    .btn-cerrar-caja:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+    }
+</style>
+<div class="container-fluid py-4" style="background: linear-gradient(to bottom, #f8f9fa, #e9ecef);">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg" style="border: none; border-radius: 15px;">
+                <div class="gradient-header text-center">
+                    <i class="fas fa-cash-register fa-3x mb-3"></i>
+                    <h1 class="font-weight-bold mb-2">Estado de Caja - Turno #{{ caja.pk }}</h1>
+                    <p class="mb-0"><i class="fas fa-user-circle mr-2"></i>Resumen para: <strong>{{ caja.usuario_apertura.username }}</strong></p>
+                </div>
+                
+                <div class="card-body p-4">
+
+                    <!-- Manejo de Mensajes -->
+                    {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Panel de Resumen de Totales -->
+                    <div class="row mb-4">
+                        <!-- Monto Inicial -->
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card stat-inicial p-4 text-center h-100">
+                                <i class="fas fa-wallet fa-2x text-primary mb-2"></i>
+                                <h6 class="text-muted mb-2">Monto Inicial</h6>
+                                <h2 class="font-weight-bold text-primary mb-2">${{ caja.monto_inicial|floatformat:2 }}</h2>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock mr-1"></i>{{ caja.fecha_apertura|date:"d/M H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        <!-- Ingresos por Venta -->
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card stat-ingresos p-4 text-center h-100">
+                                <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
+                                <h6 class="text-muted mb-2">Total Ingresos</h6>
+                                <h2 class="font-weight-bold text-success mb-2">${{ total_ingresos|floatformat:2 }}</h2>
+                                <small class="text-muted">
+                                    <i class="fas fa-shopping-cart mr-1"></i>{{ ventas_caja|length }} ventas
+                                </small>
+                            </div>
+                        </div>
+                        <!-- Fondo Esperado -->
+                        <div class="col-md-4 mb-3">
+                            <div class="stat-card stat-esperado p-4 text-center h-100">
+                                <i class="fas fa-calculator fa-2x text-warning mb-2"></i>
+                                <h6 class="text-muted mb-2">Fondo Esperado</h6>
+                                <h2 class="font-weight-bold text-warning mb-2">${{ fondo_esperado|floatformat:2 }}</h2>
+                                <small class="text-muted">
+                                    <i class="fas fa-plus mr-1"></i>Inicial + Ingresos
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Instrucciones:</strong> Cuenta el dinero físico en caja e ingresa el monto total exacto.
+                    </div>
+
+                    <!-- FORMULARIO DE CIERRE -->
+                    <form method="POST" action="{% url 'ventas:cierre_caja' pk=caja.pk %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="monto_cierre" class="font-weight-bold text-dark">
+                                <i class="fas fa-money-bill-wave text-danger mr-2"></i>Monto Final Contado en Caja
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-danger text-white">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </span>
+                                </div>
+                                <input 
+                                    type="number" 
+                                    name="monto_cierre" 
+                                    id="monto_cierre" 
+                                    step="0.01" 
+                                    required
+                                    placeholder="{{ fondo_esperado|floatformat:2 }}"
+                                    class="form-control form-control-lg font-weight-bold"
+                                    style="font-size: 1.8rem;"
+                                >
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-lightbulb text-warning mr-1"></i>
+                                Esperado: <strong class="text-warning">${{ fondo_esperado|floatformat:2 }}</strong>
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <strong>¡Atención!</strong> Una vez cerrada la caja, no podrás realizar más ventas hasta abrir un nuevo turno.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-cerrar-caja btn-lg btn-block text-white font-weight-bold py-3"
+                                >
+                                    <i class="fas fa-lock mr-2"></i>Cerrar Caja y Terminar Turno
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-secondary btn-lg btn-block py-3">
+                                    <i class="fas fa-arrow-left mr-2"></i>Volver
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

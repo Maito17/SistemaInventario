@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Clientes{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-users"></i> Reporte de Clientes
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Clientes</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros de Tipo -->
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Tipos de Reporte</h3>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-3">
+                <label class="mr-2">Mostrar:</label>
+                <a href="?tipo=general" class="btn btn-sm {% if tipo_reporte == 'general' %}btn-primary{% else %}btn-outline-primary{% endif %} mr-2">
+                    <i class="fas fa-list"></i> General
+                </a>
+                <a href="?tipo=deudores" class="btn btn-sm {% if tipo_reporte == 'deudores' %}btn-danger{% else %}btn-outline-danger{% endif %} mr-2">
+                    <i class="fas fa-exclamation-circle"></i> Deudores
+                </a>
+                <a href="?tipo=mejores" class="btn btn-sm {% if tipo_reporte == 'mejores' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    <i class="fas fa-star"></i> Mejores Clientes
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Clientes -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">{{ titulo }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Teléfono</th>
+                        {% if tipo_reporte == 'deudores' %}
+                            <th>Total Deuda</th>
+                            <th>Cuentas Pendientes</th>
+                        {% else %}
+                            <th>Total de Compras</th>
+                            <th>Cantidad de Compras</th>
+                            {% if tipo_reporte == 'general' %}
+                                <th>Deuda Pendiente</th>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>
+                            <strong>{{ cliente.nombre }}</strong>
+                            <br>
+                            <small class="text-muted">{{ cliente.email|default:"-" }}</small>
+                        </td>
+                        <td>{{ cliente.telefono|default:"-" }}</td>
+                        {% if tipo_reporte == 'deudores' %}
+                            <td class="text-right">
+                                <span class="badge badge-danger">
+                                    ${{ cliente.total_deuda|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td class="text-center">{{ cliente.cantidad_cuentas }}</td>
+                        {% else %}
+                            <td class="text-right">
+                                {% if cliente.total_compras %}
+                                    ${{ cliente.total_compras|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ cliente.cantidad_compras|default:0 }}</td>
+                            {% if tipo_reporte == 'general' %}
+                                <td class="text-right">
+                                    {% if cliente.total_deuda > 0 %}
+                                        <span class="badge badge-warning">
+                                            ${{ cliente.total_deuda|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-success">Sin deuda</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            No hay clientes para mostrar
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

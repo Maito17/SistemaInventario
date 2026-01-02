@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Personal{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">
+        <i class="fas fa-user-clock"></i> Control de Personal
+    </h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row">
+    <!-- Tarjeta de Asistencia -->
+    <div class="col-md-6">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-clock"></i> Registro de Asistencia
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if registro_hoy %}
+                    <div class="info-box">
+                        <span class="info-box-icon bg-success">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Hora de Entrada</span>
+                            <span class="info-box-number">
+                                {{ registro_hoy.hora_entrada|time:"H:i:s" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if registro_hoy.hora_salida %}
+                        <div class="info-box">
+                            <span class="info-box-icon bg-danger">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Hora de Salida</span>
+                                <span class="info-box-number">
+                                    {{ registro_hoy.hora_salida|time:"H:i:s" }}
+                                </span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <form method="POST" action="{% url 'usuarios:registrar_salida' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-block mt-2">
+                                <i class="fas fa-sign-out-alt"></i> Registrar Salida
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Aún no has registrado tu entrada.
+                    </div>
+                    
+                    <form method="POST" action="{% url 'usuarios:registrar_entrada' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-sign-in-alt"></i> Registrar Entrada
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta de Caja -->
+    <div class="col-md-6">
+        <div class="card card-info">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-cash-register"></i> Estado de Caja
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                {% if estado_caja_hoy %}
+                    <div class="alert alert-{{ estado_caja_hoy.estado|lower }} alert-dismissible fade show" role="alert">
+                        <strong>
+                            {% if estado_caja_hoy.estado == 'ABIERTA' %}
+                                <i class="fas fa-unlock"></i> Caja Abierta
+                            {% else %}
+                                <i class="fas fa-lock"></i> Caja Cerrada
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info">
+                            <i class="fas fa-dollar-sign"></i>
+                        </span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Monto Inicial</span>
+                            <span class="info-box-number">
+                                ${{ estado_caja_hoy.monto_inicial|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if estado_caja_hoy.estado == 'ABIERTA' %}
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning">
+                                <i class="fas fa-clock"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Apertura</span>
+                                <span class="info-box-number">
+                                    {{ estado_caja_hoy.timestamp_apertura|date:"H:i:s" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'usuarios:cerrar_caja' %}" class="btn btn-danger btn-block mt-2">
+                            <i class="fas fa-lock"></i> Cerrar Caja
+                        </a>
+                    {% else %}
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success">
+                                <i class="fas fa-dollar-sign"></i>
+                            </span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Monto al Cierre</span>
+                                <span class="info-box-number">
+                                    ${{ estado_caja_hoy.monto_cierre|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{% url 'usuarios:abrir_caja' %}" class="mt-3">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="monto_inicial">Monto Inicial</label>
+                                <input type="number" step="0.01" name="monto_inicial" id="monto_inicial" 
+                                       class="form-control" placeholder="0.00" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="fas fa-unlock"></i> Abrir Nueva Caja
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No tienes una caja registrada hoy.
+                    </div>
+                    
+                    <form method="POST" action="{% url 'usuarios:abrir_caja' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="monto_inicial">Monto Inicial</label>
+                            <input type="number" step="0.01" name="monto_inicial" id="monto_inicial" 
+                                   class="form-control" placeholder="0.00" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-unlock"></i> Abrir Caja
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón para ir a la lista de personal (Solo para admins) -->
+{% if user.is_superuser %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <a href="{% url 'usuarios:lista_personal' %}" class="btn btn-secondary">
+            <i class="fas fa-users"></i> Ver Estado de Todo el Personal
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}

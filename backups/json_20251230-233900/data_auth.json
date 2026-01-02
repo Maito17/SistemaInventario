@@ -1,0 +1,1559 @@
+[
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add categoria",
+    "content_type": [
+      "inventario",
+      "categoria"
+    ],
+    "codename": "add_categoria"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change categoria",
+    "content_type": [
+      "inventario",
+      "categoria"
+    ],
+    "codename": "change_categoria"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete categoria",
+    "content_type": [
+      "inventario",
+      "categoria"
+    ],
+    "codename": "delete_categoria"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view categoria",
+    "content_type": [
+      "inventario",
+      "categoria"
+    ],
+    "codename": "view_categoria"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add producto",
+    "content_type": [
+      "inventario",
+      "producto"
+    ],
+    "codename": "add_producto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change producto",
+    "content_type": [
+      "inventario",
+      "producto"
+    ],
+    "codename": "change_producto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete producto",
+    "content_type": [
+      "inventario",
+      "producto"
+    ],
+    "codename": "delete_producto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view producto",
+    "content_type": [
+      "inventario",
+      "producto"
+    ],
+    "codename": "view_producto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add proveedor",
+    "content_type": [
+      "inventario",
+      "proveedor"
+    ],
+    "codename": "add_proveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change proveedor",
+    "content_type": [
+      "inventario",
+      "proveedor"
+    ],
+    "codename": "change_proveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete proveedor",
+    "content_type": [
+      "inventario",
+      "proveedor"
+    ],
+    "codename": "delete_proveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view proveedor",
+    "content_type": [
+      "inventario",
+      "proveedor"
+    ],
+    "codename": "view_proveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add compra",
+    "content_type": [
+      "inventario",
+      "compra"
+    ],
+    "codename": "add_compra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change compra",
+    "content_type": [
+      "inventario",
+      "compra"
+    ],
+    "codename": "change_compra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete compra",
+    "content_type": [
+      "inventario",
+      "compra"
+    ],
+    "codename": "delete_compra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view compra",
+    "content_type": [
+      "inventario",
+      "compra"
+    ],
+    "codename": "view_compra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add detalle compra",
+    "content_type": [
+      "inventario",
+      "detallecompra"
+    ],
+    "codename": "add_detallecompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change detalle compra",
+    "content_type": [
+      "inventario",
+      "detallecompra"
+    ],
+    "codename": "change_detallecompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete detalle compra",
+    "content_type": [
+      "inventario",
+      "detallecompra"
+    ],
+    "codename": "delete_detallecompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view detalle compra",
+    "content_type": [
+      "inventario",
+      "detallecompra"
+    ],
+    "codename": "view_detallecompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Método de Pago de Compra",
+    "content_type": [
+      "inventario",
+      "metodopagocompra"
+    ],
+    "codename": "add_metodopagocompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Método de Pago de Compra",
+    "content_type": [
+      "inventario",
+      "metodopagocompra"
+    ],
+    "codename": "change_metodopagocompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Método de Pago de Compra",
+    "content_type": [
+      "inventario",
+      "metodopagocompra"
+    ],
+    "codename": "delete_metodopagocompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Método de Pago de Compra",
+    "content_type": [
+      "inventario",
+      "metodopagocompra"
+    ],
+    "codename": "view_metodopagocompra"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add cliente",
+    "content_type": [
+      "cliente",
+      "cliente"
+    ],
+    "codename": "add_cliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change cliente",
+    "content_type": [
+      "cliente",
+      "cliente"
+    ],
+    "codename": "change_cliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete cliente",
+    "content_type": [
+      "cliente",
+      "cliente"
+    ],
+    "codename": "delete_cliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view cliente",
+    "content_type": [
+      "cliente",
+      "cliente"
+    ],
+    "codename": "view_cliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Permiso de Acceso",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "add_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Permiso de Acceso",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "change_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Permiso de Acceso",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "delete_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Permiso de Acceso",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "view_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede ver el panel de administración",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "can_view_dashboard_admin"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede ver la lista de ventas",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "can_view_lista_ventas"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede acceder al inventario",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "can_access_inventario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede acceder al punto de venta",
+    "content_type": [
+      "possitema",
+      "controlacceso"
+    ],
+    "codename": "can_access_pos"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Configuración de Empresa",
+    "content_type": [
+      "possitema",
+      "configuracionempresa"
+    ],
+    "codename": "add_configuracionempresa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Configuración de Empresa",
+    "content_type": [
+      "possitema",
+      "configuracionempresa"
+    ],
+    "codename": "change_configuracionempresa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Configuración de Empresa",
+    "content_type": [
+      "possitema",
+      "configuracionempresa"
+    ],
+    "codename": "delete_configuracionempresa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Configuración de Empresa",
+    "content_type": [
+      "possitema",
+      "configuracionempresa"
+    ],
+    "codename": "view_configuracionempresa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add perfil usuario",
+    "content_type": [
+      "usuarios",
+      "perfilusuario"
+    ],
+    "codename": "add_perfilusuario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change perfil usuario",
+    "content_type": [
+      "usuarios",
+      "perfilusuario"
+    ],
+    "codename": "change_perfilusuario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete perfil usuario",
+    "content_type": [
+      "usuarios",
+      "perfilusuario"
+    ],
+    "codename": "delete_perfilusuario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view perfil usuario",
+    "content_type": [
+      "usuarios",
+      "perfilusuario"
+    ],
+    "codename": "view_perfilusuario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Estado de Caja",
+    "content_type": [
+      "usuarios",
+      "estadocaja"
+    ],
+    "codename": "add_estadocaja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Estado de Caja",
+    "content_type": [
+      "usuarios",
+      "estadocaja"
+    ],
+    "codename": "change_estadocaja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Estado de Caja",
+    "content_type": [
+      "usuarios",
+      "estadocaja"
+    ],
+    "codename": "delete_estadocaja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Estado de Caja",
+    "content_type": [
+      "usuarios",
+      "estadocaja"
+    ],
+    "codename": "view_estadocaja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Registro de Acceso",
+    "content_type": [
+      "usuarios",
+      "registroacceso"
+    ],
+    "codename": "add_registroacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Registro de Acceso",
+    "content_type": [
+      "usuarios",
+      "registroacceso"
+    ],
+    "codename": "change_registroacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Registro de Acceso",
+    "content_type": [
+      "usuarios",
+      "registroacceso"
+    ],
+    "codename": "delete_registroacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Registro de Acceso",
+    "content_type": [
+      "usuarios",
+      "registroacceso"
+    ],
+    "codename": "view_registroacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Registro de Asistencia",
+    "content_type": [
+      "control",
+      "registroasistencia"
+    ],
+    "codename": "add_registroasistencia"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Registro de Asistencia",
+    "content_type": [
+      "control",
+      "registroasistencia"
+    ],
+    "codename": "change_registroasistencia"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Registro de Asistencia",
+    "content_type": [
+      "control",
+      "registroasistencia"
+    ],
+    "codename": "delete_registroasistencia"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Registro de Asistencia",
+    "content_type": [
+      "control",
+      "registroasistencia"
+    ],
+    "codename": "view_registroasistencia"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Permiso de Acceso",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "add_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Permiso de Acceso",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "change_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Permiso de Acceso",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "delete_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Permiso de Acceso",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "view_controlacceso"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede ver el Dashboard Administrativo completo (Reportes Críticos)",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "can_view_dashboard_admin"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede ver el historial y listado de todas las ventas",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "can_view_lista_ventas"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede acceder al módulo de inventario",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "can_access_inventario"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Puede acceder al módulo de Punto de Venta (POS)",
+    "content_type": [
+      "ventas",
+      "controlacceso"
+    ],
+    "codename": "can_access_pos"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Caja",
+    "content_type": [
+      "ventas",
+      "caja"
+    ],
+    "codename": "add_caja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Caja",
+    "content_type": [
+      "ventas",
+      "caja"
+    ],
+    "codename": "change_caja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Caja",
+    "content_type": [
+      "ventas",
+      "caja"
+    ],
+    "codename": "delete_caja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Caja",
+    "content_type": [
+      "ventas",
+      "caja"
+    ],
+    "codename": "view_caja"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Venta",
+    "content_type": [
+      "ventas",
+      "venta"
+    ],
+    "codename": "add_venta"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Venta",
+    "content_type": [
+      "ventas",
+      "venta"
+    ],
+    "codename": "change_venta"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Venta",
+    "content_type": [
+      "ventas",
+      "venta"
+    ],
+    "codename": "delete_venta"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Venta",
+    "content_type": [
+      "ventas",
+      "venta"
+    ],
+    "codename": "view_venta"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Detalle de Venta",
+    "content_type": [
+      "ventas",
+      "detalleventa"
+    ],
+    "codename": "add_detalleventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Detalle de Venta",
+    "content_type": [
+      "ventas",
+      "detalleventa"
+    ],
+    "codename": "change_detalleventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Detalle de Venta",
+    "content_type": [
+      "ventas",
+      "detalleventa"
+    ],
+    "codename": "delete_detalleventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Detalle de Venta",
+    "content_type": [
+      "ventas",
+      "detalleventa"
+    ],
+    "codename": "view_detalleventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Método de Pago de Venta",
+    "content_type": [
+      "ventas",
+      "metodopagoventa"
+    ],
+    "codename": "add_metodopagoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Método de Pago de Venta",
+    "content_type": [
+      "ventas",
+      "metodopagoventa"
+    ],
+    "codename": "change_metodopagoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Método de Pago de Venta",
+    "content_type": [
+      "ventas",
+      "metodopagoventa"
+    ],
+    "codename": "delete_metodopagoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Método de Pago de Venta",
+    "content_type": [
+      "ventas",
+      "metodopagoventa"
+    ],
+    "codename": "view_metodopagoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Cuenta por Cobrar",
+    "content_type": [
+      "finanzas",
+      "cuentaporcobrar"
+    ],
+    "codename": "add_cuentaporcobrar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Cuenta por Cobrar",
+    "content_type": [
+      "finanzas",
+      "cuentaporcobrar"
+    ],
+    "codename": "change_cuentaporcobrar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Cuenta por Cobrar",
+    "content_type": [
+      "finanzas",
+      "cuentaporcobrar"
+    ],
+    "codename": "delete_cuentaporcobrar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Cuenta por Cobrar",
+    "content_type": [
+      "finanzas",
+      "cuentaporcobrar"
+    ],
+    "codename": "view_cuentaporcobrar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Amortización a Cliente",
+    "content_type": [
+      "finanzas",
+      "amortizacioncliente"
+    ],
+    "codename": "add_amortizacioncliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Amortización a Cliente",
+    "content_type": [
+      "finanzas",
+      "amortizacioncliente"
+    ],
+    "codename": "change_amortizacioncliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Amortización a Cliente",
+    "content_type": [
+      "finanzas",
+      "amortizacioncliente"
+    ],
+    "codename": "delete_amortizacioncliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Amortización a Cliente",
+    "content_type": [
+      "finanzas",
+      "amortizacioncliente"
+    ],
+    "codename": "view_amortizacioncliente"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Cuenta por Pagar",
+    "content_type": [
+      "finanzas",
+      "cuentaporpagar"
+    ],
+    "codename": "add_cuentaporpagar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Cuenta por Pagar",
+    "content_type": [
+      "finanzas",
+      "cuentaporpagar"
+    ],
+    "codename": "change_cuentaporpagar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Cuenta por Pagar",
+    "content_type": [
+      "finanzas",
+      "cuentaporpagar"
+    ],
+    "codename": "delete_cuentaporpagar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Cuenta por Pagar",
+    "content_type": [
+      "finanzas",
+      "cuentaporpagar"
+    ],
+    "codename": "view_cuentaporpagar"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Amortización a Proveedor",
+    "content_type": [
+      "finanzas",
+      "amortizacionproveedor"
+    ],
+    "codename": "add_amortizacionproveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Amortización a Proveedor",
+    "content_type": [
+      "finanzas",
+      "amortizacionproveedor"
+    ],
+    "codename": "change_amortizacionproveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Amortización a Proveedor",
+    "content_type": [
+      "finanzas",
+      "amortizacionproveedor"
+    ],
+    "codename": "delete_amortizacionproveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Amortización a Proveedor",
+    "content_type": [
+      "finanzas",
+      "amortizacionproveedor"
+    ],
+    "codename": "view_amortizacionproveedor"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Solicitud de Crédito",
+    "content_type": [
+      "finanzas",
+      "solicitudcredito"
+    ],
+    "codename": "add_solicitudcredito"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Solicitud de Crédito",
+    "content_type": [
+      "finanzas",
+      "solicitudcredito"
+    ],
+    "codename": "change_solicitudcredito"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Solicitud de Crédito",
+    "content_type": [
+      "finanzas",
+      "solicitudcredito"
+    ],
+    "codename": "delete_solicitudcredito"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Solicitud de Crédito",
+    "content_type": [
+      "finanzas",
+      "solicitudcredito"
+    ],
+    "codename": "view_solicitudcredito"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Gasto",
+    "content_type": [
+      "gasto",
+      "gasto"
+    ],
+    "codename": "add_gasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Gasto",
+    "content_type": [
+      "gasto",
+      "gasto"
+    ],
+    "codename": "change_gasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Gasto",
+    "content_type": [
+      "gasto",
+      "gasto"
+    ],
+    "codename": "delete_gasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Gasto",
+    "content_type": [
+      "gasto",
+      "gasto"
+    ],
+    "codename": "view_gasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Tipo de Gasto",
+    "content_type": [
+      "gasto",
+      "tipogasto"
+    ],
+    "codename": "add_tipogasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Tipo de Gasto",
+    "content_type": [
+      "gasto",
+      "tipogasto"
+    ],
+    "codename": "change_tipogasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Tipo de Gasto",
+    "content_type": [
+      "gasto",
+      "tipogasto"
+    ],
+    "codename": "delete_tipogasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Tipo de Gasto",
+    "content_type": [
+      "gasto",
+      "tipogasto"
+    ],
+    "codename": "view_tipogasto"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Detalle Gasto Venta",
+    "content_type": [
+      "gasto",
+      "detallegastoventa"
+    ],
+    "codename": "add_detallegastoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Detalle Gasto Venta",
+    "content_type": [
+      "gasto",
+      "detallegastoventa"
+    ],
+    "codename": "change_detallegastoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Detalle Gasto Venta",
+    "content_type": [
+      "gasto",
+      "detallegastoventa"
+    ],
+    "codename": "delete_detallegastoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Detalle Gasto Venta",
+    "content_type": [
+      "gasto",
+      "detallegastoventa"
+    ],
+    "codename": "view_detallegastoventa"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add Detalle Gasto Administración",
+    "content_type": [
+      "gasto",
+      "detallegastoadministracion"
+    ],
+    "codename": "add_detallegastoadministracion"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change Detalle Gasto Administración",
+    "content_type": [
+      "gasto",
+      "detallegastoadministracion"
+    ],
+    "codename": "change_detallegastoadministracion"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete Detalle Gasto Administración",
+    "content_type": [
+      "gasto",
+      "detallegastoadministracion"
+    ],
+    "codename": "delete_detallegastoadministracion"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view Detalle Gasto Administración",
+    "content_type": [
+      "gasto",
+      "detallegastoadministracion"
+    ],
+    "codename": "view_detallegastoadministracion"
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$Hce8k2VIZhnR43nu2K0JqL$rCsc35XSIZCWxVl1tcuOwTUuudCDgpPGnf/ArGsLUeU=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "Admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "jd15325@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-12-31T04:21:49.425Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

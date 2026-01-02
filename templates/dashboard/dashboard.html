@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard - Sistema de Ventas{% endblock %}
+
+<script>
+    // ===== ACTUALIZAR INGRESOS EN TIEMPO REAL =====
+    function actualizarIngresos() {
+        $.ajax({
+            url: "{% url 'dashboard' %}ajax/actualizar-ingresos/",
+            type: 'GET',
+            dataType: 'json',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(data) {
+                if (data.success) {
+                    // Función auxiliar para formatear dinero
+                    function formatoMoneda(valor) {
+                        return new Intl.NumberFormat('es-ES', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(valor);
+                    }
+                    
+                    // Actualizar Ingresos de Hoy
+                    $('#ingresos-hoy-valor').text(formatoMoneda(data.ingresos_hoy));
+                    
+                    // Actualizar Ventas de Hoy
+                    $('#ventas-hoy-valor').text(data.total_ventas_hoy);
+                    
+                    // Actualizar Ingresos del Mes
+                    $('#ingresos-mes-valor').text(formatoMoneda(data.ingresos_mes));
+                    
+                    // Actualizar Ventas del Mes
+                    $('#ventas-mes-valor').text(data.total_ventas_mes);
+                    
+                    console.log('✅ Ingresos actualizados:', {
+                        ingresos_hoy: data.ingresos_hoy,
+                        ventas_hoy: data.total_ventas_hoy,
+                        ingresos_mes: data.ingresos_mes,
+                        ventas_mes: data.total_ventas_mes
+                    });
+                }
+            },
+            error: function(error) {
+                console.error('❌ Error al actualizar ingresos:', error);
+            }
+        });
+    }
+    
+    // Actualizar ingresos al cargar la página
+    $(document).ready(function() {
+        console.log('📊 Dashboard cargado - Monitoreando ingresos en tiempo real...');
+        
+        // Actualizar cada 30 segundos
+        setInterval(actualizarIngresos, 30000);
+    });
+</script>
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Dashboard</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<!-- Resumen de Hoy -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-gradient-primary">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3 class="text-white mb-0">¡Bienvenido, {{ nombre_usuario }}!</h3>
+                        <p class="text-white-50 mb-0">Resumen de ventas de hoy</p>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        {% if caja_abierta %}
+                        <a href="{% url 'ventas:estado_caja' pk=caja_abierta.pk %}" class="btn btn-light">
+                            <i class="fas fa-cash-register mr-2"></i>
+                            Caja #{{ caja_abierta.pk }} Abierta
+                        </a>
+                        {% else %}
+                        <a href="{% url 'ventas:apertura_caja' %}" class="btn btn-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Abrir Caja
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas Principales -->
+<div class="row">
+    <!-- Ventas de Hoy -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3 id="ventas-hoy-valor">{{ total_ventas_hoy }}</h3>
+                <p>Ventas de Hoy</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ingresos de Hoy -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3 id="ingresos-hoy-valor">${{ ingresos_hoy|floatformat:2|intcomma }}</h3>
+                <p>Ingresos de Hoy</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ventas del Mes -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3 id="ventas-mes-valor">{{ total_ventas_mes }}</h3>
+                <p>Ventas del Mes</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ingresos del Mes -->
+    {% if not es_trabajador %}
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3 id="ingresos-mes-valor">${{ ingresos_mes|floatformat:2|intcomma }}</h3>
+                <p>Ingresos del Mes</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Segunda Fila de Estadísticas -->
+<div class="row">
+    <!-- Total Productos -->
+    <div class="col-lg-4 col-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-primary"><i class="fas fa-box"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Productos</span>
+                <span class="info-box-number">{{ total_productos }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Clientes -->
+    <div class="col-lg-4 col-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-users"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Clientes</span>
+                <span class="info-box-number">{{ total_clientes }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MARGEN DE GANANCIAS -->
+{% if not es_trabajador %}
+<div class="row mb-4">
+    <!-- Ganancia de Hoy -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>${{ ganancia_dia|floatformat:2|intcomma }}</h3>
+                <p>Ganancia de Hoy</p>
+                <small class="text-muted">Margen: {{ margen_porcentaje_dia|floatformat:1 }}%</small>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ganancia del Mes -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>${{ ganancia_mes|floatformat:2|intcomma }}</h3>
+                <p>Ganancia del Mes</p>
+                <small class="text-muted">Margen: {{ margen_porcentaje_mes|floatformat:1 }}%</small>
+            </div>
+            <div class="icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <a href="{% url 'possitema:historial_ventas' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Gasto del Mes -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>${{ total_gastos_mes|floatformat:2|intcomma }}</h3>
+                <p>Gasto del Mes</p>
+                <small class="text-muted">&nbsp;</small>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <a href="{% url 'gasto:lista_gastos' %}" class="small-box-footer">
+                Más info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- TERCERA FILA - ESTADÍSTICAS DE PERSONAL Y CUENTAS -->
+<div class="row">
+    <!-- Cuentas Pendientes -->
+    {% if not es_trabajador %}
+    <div class="col-lg-4 col-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-circle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Cuentas Pendientes</span>
+                <span class="info-box-number">{{ cuentas_pendientes }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<!-- CUARTA FILA - RESUMEN DE 7 DÍAS -->
+<div class="row">
+    <div class="col-lg-6 col-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-info"><i class="fas fa-chart-line"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Ventas Últimos 7 Días</span>
+                <span class="info-box-number">{{ total_ventas_7dias }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-money-bill-wave"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Ingresos Últimos 7 Días</span>
+                <span class="info-box-number">${{ ingresos_7dias|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenido Principal -->
+<div class="row">
+    <!-- Últimas Ventas -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header border-transparent">
+                <h3 class="card-title">Últimas Ventas</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table m-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ultimas_ventas %}
+                            <tr>
+                                <td><a href="#">#{{ venta.id }}</a></td>
+                                <td>{{ venta.cliente.nombre|default:"Cliente General" }}</td>
+                                <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                                <td>${{ venta.total|floatformat:2 }}</td>
+                                <td><span class="badge badge-success">Completada</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No hay ventas registradas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer clearfix">
+                <a href="{% url 'possitema:historial_ventas' %}" class="btn btn-sm btn-secondary float-right">Ver
+                    Todas</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos Más Vendidos -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header border-transparent">
+                <h3 class="card-title">Productos Más Vendidos</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <ul class="products-list product-list-in-card pl-2 pr-2">
+                    {% for producto in productos_vendidos %}
+                    <li class="item">
+                        <div class="product-img">
+                            <i class="fas fa-box fa-2x text-primary"></i>
+                        </div>
+                        <div class="product-info">
+                            <a href="#" class="product-title">
+                                {{ producto.producto__nombre }}
+                                <span class="badge badge-info float-right">{{ producto.total_vendido }} unidades</span>
+                            </a>
+                            <span class="product-description">
+                                Código: {{ producto.producto__id_producto }}
+                            </span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="item">
+                        <div class="product-info text-center text-muted py-3">
+                            No hay datos de ventas este mes
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'inventario:lista' %}" class="uppercase">Ver Inventario</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Accesos Rápidos</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'ventas:nueva_venta' %}" class="btn btn-app btn-block bg-success">
+                            <i class="fas fa-cash-register"></i> Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'inventario:lista' %}" class="btn btn-app btn-block bg-primary">
+                            <i class="fas fa-boxes"></i> Inventario
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'clientes:lista' %}" class="btn btn-app btn-block bg-info">
+                            <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'possitema:historial_ventas' %}" class="btn btn-app btn-block bg-warning">
+                            <i class="fas fa-history"></i> Historial
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'reportes:inicio' %}" class="btn btn-app btn-block bg-secondary">
+                            <i class="fas fa-chart-bar"></i> Reportes
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 col-12">
+                        <a href="{% url 'usuarios:dashboard_personal' %}" class="btn btn-app btn-block bg-dark">
+                            <i class="fas fa-user-clock"></i> Personal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

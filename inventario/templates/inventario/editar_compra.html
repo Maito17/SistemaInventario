@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Compra #{{ compra.id_compra }}{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Editar Compra #{{ compra.id_compra }}</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Información General de la Compra</h3>
+    </div>
+    
+    <form method="POST" class="form-horizontal" id="form-compra">
+        {% csrf_token %}
+        <div class="card-body">
+            <!-- Mensajes de error/éxito -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <strong>{{ message.tags|title }}:</strong> {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- SECCIÓN 1: Datos Generales de la Compra -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="proveedor">Proveedor <span class="text-danger">*</span></label>
+                        <select class="form-control" id="proveedor" name="proveedor" required>
+                            <option value="">-- Selecciona un proveedor --</option>
+                            {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id_proveedor }}" 
+                                    {% if compra.proveedor.id_proveedor == proveedor.id_proveedor %}selected{% endif %}>
+                                    {{ proveedor.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="numero_documento">Número de Factura/Documento</label>
+                        <input type="text" class="form-control" id="numero_documento" name="numero_documento" 
+                               placeholder="Ej: FAC-001-2025" value="{{ compra.numero_documento|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="metodo_pago">Método de Pago</label>
+                        <select class="form-control" id="metodo_pago" name="metodo_pago">
+                            <option value="">-- Sin método de pago --</option>
+                            {% for metodo in metodos_pago %}
+                                <option value="{{ metodo.id }}" 
+                                    {% if compra.metodo_pago.id == metodo.id %}selected{% endif %}>
+                                    {{ metodo.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="estado">Estado</label>
+                        <select class="form-control" id="estado" name="estado">
+                            <option value="PENDIENTE" {% if compra.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                            <option value="RECIBIDA" {% if compra.estado == 'RECIBIDA' %}selected{% endif %}>Recibida</option>
+                            <option value="PAGADA" {% if compra.estado == 'PAGADA' %}selected{% endif %}>Pagada</option>
+                            <option value="CANCELADA" {% if compra.estado == 'CANCELADA' %}selected{% endif %}>Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="fecha_pago_proveedor">Fecha de Pago a Proveedor (Si es a crédito)</label>
+                        <input type="date" class="form-control" id="fecha_pago_proveedor" name="fecha_pago_proveedor"
+                               value="{% if compra.fecha_pago_proveedor %}{{ compra.fecha_pago_proveedor|date:'Y-m-d' }}{% endif %}">
+                        <small class="form-text text-muted">Dejar vacío si es pago al contado</small>
+                    </div>
+                </div>
+
+            <hr class="my-4">
+
+            <!-- SECCIÓN 2: Detalles de la Compra -->
+            <h5 class="mb-3"><i class="fas fa-list"></i> Detalles de Productos</h5>
+            
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered" id="detalles-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th style="width: 25%;">Producto <span class="text-danger">*</span></th>
+                            <th style="width: 15%;">Cantidad <span class="text-danger">*</span></th>
+                            <th style="width: 15%;">Costo Unit. <span class="text-danger">*</span></th>
+                            <th style="width: 15%;">Subtotal</th>
+                            <th style="width: 20%;">Fecha Caducidad</th>
+                            <th style="width: 10%; text-align: center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detalles-tbody">
+                        {% if detalles %}
+                            {% for detalle in detalles %}
+                                <tr class="detalle-row" data-index="{{ forloop.counter0 }}">
+                                    <td>
+                                        <select class="form-control form-control-sm producto-select" 
+                                                name="detalles-{{ forloop.counter0 }}-producto" required>
+                                            <option value="">-- Selecciona --</option>
+                                            {% for producto in productos %}
+                                                <option value="{{ producto.id_producto }}" 
+                                                    {% if producto.id_producto == detalle.producto.id_producto %}selected{% endif %}>
+                                                    {{ producto.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm cantidad-input" 
+                                               name="detalles-{{ forloop.counter0 }}-cantidad_recibida" 
+                                               min="1" step="1" value="{{ detalle.cantidad_recibida }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm costo-input" 
+                                               name="detalles-{{ forloop.counter0 }}-costo_unitario" 
+                                               step="0.01" min="0" value="{{ detalle.costo_unitario }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm subtotal-display" 
+                                               disabled value="0.00">
+                                    </td>
+                                    <td>
+                                        <input type="date" class="form-control form-control-sm" 
+                                               name="detalles-{{ forloop.counter0 }}-fecha_caducidad" 
+                                               value="{% if detalle.fecha_caducidad %}{{ detalle.fecha_caducidad|date:'Y-m-d' }}{% endif %}">
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-danger btn-sm eliminar-detalle">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr class="detalle-row" data-index="0">
+                                <td>
+                                    <select class="form-control form-control-sm producto-select" 
+                                            name="detalles-0-producto" required>
+                                        <option value="">-- Selecciona --</option>
+                                        {% for producto in productos %}
+                                            <option value="{{ producto.id_producto }}">{{ producto.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm cantidad-input" 
+                                           name="detalles-0-cantidad_recibida" min="1" step="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm costo-input" 
+                                           name="detalles-0-costo_unitario" step="0.01" min="0" required>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm subtotal-display" 
+                                           disabled value="0.00">
+                                </td>
+                                <td>
+                                    <input type="date" class="form-control form-control-sm" 
+                                           name="detalles-0-fecha_caducidad">
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="btn btn-danger btn-sm eliminar-detalle">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <input type="hidden" id="detalles-TOTAL_FORMS" name="detalles-TOTAL_FORMS" 
+                   value="{% if detalles %}{{ detalles|length }}{% else %}1{% endif %}">
+
+            <div class="mt-3">
+                <button type="button" class="btn btn-info btn-sm" id="agregar-detalle">
+                    <i class="fas fa-plus"></i> Agregar Otro Producto
+                </button>
+            </div>
+        </div>
+
+        <div class="card-footer bg-light">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Actualizar Compra
+            </button>
+            <a href="{% url 'inventario:lista_compras' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .detalle-row {
+        vertical-align: middle;
+    }
+    
+    .form-control-sm {
+        height: calc(1.5em + 0.5rem + 2px);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+
+<script>
+    let detalleCount = {% if detalles %}{{ detalles|length }}{% else %}1{% endif %};
+
+    // ==========================================
+    // FUNCIÓN: Calcular Subtotal de una Fila
+    // ==========================================
+    function calcularSubtotalFila(fila) {
+        const inputCantidad = fila.querySelector('.cantidad-input');
+        const inputCosto = fila.querySelector('.costo-input');
+        const inputSubtotal = fila.querySelector('.subtotal-display');
+        
+        if (inputCantidad && inputCosto && inputSubtotal) {
+            const cantidad = parseFloat(inputCantidad.value) || 0;
+            const costo = parseFloat(inputCosto.value) || 0;
+            const subtotal = cantidad * costo;
+            
+            inputSubtotal.value = subtotal.toFixed(2);
+        }
+    }
+
+    // ==========================================
+    // FUNCIÓN: Agregar Listeners a Detalle
+    // ==========================================
+    function agregarEventListenersDetalle(fila) {
+        const inputCantidad = fila.querySelector('.cantidad-input');
+        const inputCosto = fila.querySelector('.costo-input');
+        const btnEliminar = fila.querySelector('.eliminar-detalle');
+
+        // Listener para cantidad
+        if (inputCantidad) {
+            inputCantidad.addEventListener('input', function() {
+                calcularSubtotalFila(fila);
+            });
+            inputCantidad.addEventListener('change', function() {
+                calcularSubtotalFila(fila);
+            });
+        }
+
+        // Listener para costo
+        if (inputCosto) {
+            inputCosto.addEventListener('input', function() {
+                calcularSubtotalFila(fila);
+            });
+            inputCosto.addEventListener('change', function() {
+                calcularSubtotalFila(fila);
+            });
+        }
+
+        // Listener para eliminar
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', function(e) {
+                e.preventDefault();
+                const totalFilas = document.querySelectorAll('.detalle-row').length;
+                
+                if (totalFilas > 1) {
+                    fila.remove();
+                    detalleCount--;
+                    document.getElementById('detalles-TOTAL_FORMS').value = detalleCount;
+                } else {
+                    alert('⚠️ Debe tener al menos un detalle en la compra');
+                }
+            });
+        }
+    }
+
+    // ==========================================
+    // FUNCIÓN: Agregar Nuevo Detalle
+    // ==========================================
+    document.getElementById('agregar-detalle').addEventListener('click', function(e) {
+        e.preventDefault();
+        const tbody = document.getElementById('detalles-tbody');
+        const primeraFila = document.querySelector('.detalle-row');
+        
+        if (!primeraFila) {
+            alert('Error: No se encontró fila para clonar');
+            return;
+        }
+        
+        const nuevaFila = primeraFila.cloneNode(true);
+        
+        // Limpiar y actualizar nombres de campos
+        nuevaFila.querySelectorAll('input, select').forEach(campo => {
+            const nombre = campo.getAttribute('name');
+            if (nombre) {
+                const nuevoNombre = nombre.replace(/detalles-\d+/, `detalles-${detalleCount}`);
+                campo.setAttribute('name', nuevoNombre);
+                campo.value = '';
+            }
+        });
+        
+        tbody.appendChild(nuevaFila);
+        agregarEventListenersDetalle(nuevaFila);
+        
+        detalleCount++;
+        document.getElementById('detalles-TOTAL_FORMS').value = detalleCount;
+        
+        nuevaFila.querySelector('.producto-select').focus();
+    });
+
+    // ==========================================
+    // INICIALIZACIÓN
+    // ==========================================
+    // Agregar listeners a todos los detalles existentes
+    document.querySelectorAll('.detalle-row').forEach(fila => {
+        agregarEventListenersDetalle(fila);
+        // Calcular subtotal inicial de datos existentes
+        calcularSubtotalFila(fila);
+    });
+
+    // ==========================================
+    // VALIDACIÓN ANTES DE ENVIAR
+    // ==========================================
+    document.getElementById('form-compra').addEventListener('submit', function(e) {
+        const proveedor = document.getElementById('proveedor').value;
+        const detalles = document.querySelectorAll('.detalle-row');
+        let hayErrores = false;
+
+        // Validar proveedor
+        if (!proveedor) {
+            alert('⚠️ Debes seleccionar un proveedor');
+            e.preventDefault();
+            return false;
+        }
+
+        // Validar que haya detalles
+        if (detalles.length === 0) {
+            alert('⚠️ Debes agregar al menos un producto a la compra');
+            e.preventDefault();
+            return false;
+        }
+
+        // Validar cada detalle
+        detalles.forEach((row, index) => {
+            const producto = row.querySelector('.producto-select').value;
+            const cantidad = parseFloat(row.querySelector('.cantidad-input').value) || 0;
+            const costo = parseFloat(row.querySelector('.costo-input').value) || 0;
+
+            if (!producto) {
+                alert(`⚠️ Fila ${index + 1}: Debes seleccionar un producto`);
+                hayErrores = true;
+            }
+            if (cantidad <= 0) {
+                alert(`⚠️ Fila ${index + 1}: La cantidad debe ser mayor a 0`);
+                hayErrores = true;
+            }
+            if (costo < 0) {
+                alert(`⚠️ Fila ${index + 1}: El costo no puede ser negativo`);
+                hayErrores = true;
+            }
+        });
+
+        if (hayErrores) {
+            e.preventDefault();
+            return false;
+        }
+
+        return true;
+    });
+</script>
+{% endblock content %}

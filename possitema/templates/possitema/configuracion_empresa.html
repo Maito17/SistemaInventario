@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Configuración de Empresa - Sistema POS{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">
+          <i class="fas fa-building"></i> Configuración de Empresa
+        </h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item">
+            <a href="{% url 'possitema:dashboard' %}">Home</a>
+          </li>
+          <li class="breadcrumb-item active">Configuración de Empresa</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Alert Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Main Row -->
+  <div class="row">
+    <div class="col-md-8">
+      <!-- Info Box -->
+      <div class="card card-primary">
+        <div class="card-header">
+          <h3 class="card-title">
+            {% if config %}
+              <i class="fas fa-edit"></i> Editar Configuración
+            {% else %}
+              <i class="fas fa-plus"></i> Crear Nueva Configuración
+            {% endif %}
+          </h3>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" enctype="multipart/form-data" class="needs-validation">
+          {% csrf_token %}
+
+          <div class="card-body">
+            <!-- Información Básica -->
+            <div class="form-group">
+              <h5 class="mb-3">
+                <i class="fas fa-info-circle text-primary"></i> Información Básica
+              </h5>
+
+              <div class="form-group">
+                <label for="{{ form.nombre_empresa.id_for_label }}">
+                  {{ form.nombre_empresa.label }}
+                  <span class="text-danger">*</span>
+                </label>
+                {{ form.nombre_empresa }}
+                {% if form.nombre_empresa.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.nombre_empresa.errors }}
+                  </small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.ruc.id_for_label }}">
+                  {{ form.ruc.label }}
+                  <span class="text-danger">*</span>
+                </label>
+                {{ form.ruc }}
+                {% if form.ruc.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.ruc.errors }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Contacto -->
+            <div class="form-group">
+              <h5 class="mb-3">
+                <i class="fas fa-phone text-info"></i> Información de Contacto
+              </h5>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="{{ form.telefono_celular.id_for_label }}">
+                      {{ form.telefono_celular.label }}
+                    </label>
+                    {{ form.telefono_celular }}
+                    {% if form.telefono_celular.errors %}
+                      <small class="form-text text-danger">
+                        {{ form.telefono_celular.errors }}
+                      </small>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="{{ form.telefono_convencional.id_for_label }}">
+                      {{ form.telefono_convencional.label }}
+                    </label>
+                    {{ form.telefono_convencional }}
+                    {% if form.telefono_convencional.errors %}
+                      <small class="form-text text-danger">
+                        {{ form.telefono_convencional.errors }}
+                      </small>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">
+                  {{ form.email.label }}
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.email.errors }}
+                  </small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.sitio_web.id_for_label }}">
+                  {{ form.sitio_web.label }}
+                </label>
+                {{ form.sitio_web }}
+                {% if form.sitio_web.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.sitio_web.errors }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Dirección e Información Fiscal -->
+            <div class="form-group">
+              <h5 class="mb-3">
+                <i class="fas fa-map-marker-alt text-success"></i> Dirección e Información Fiscal
+              </h5>
+
+              <div class="form-group">
+                <label for="{{ form.direccion.id_for_label }}">
+                  {{ form.direccion.label }}
+                </label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.direccion.errors }}
+                  </small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.iva_porcentaje.id_for_label }}">
+                  {{ form.iva_porcentaje.label }}
+                </label>
+                <div class="input-group">
+                  {{ form.iva_porcentaje }}
+                  <div class="input-group-append">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+                {% if form.iva_porcentaje.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.iva_porcentaje.errors }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Branding -->
+            <div class="form-group">
+              <h5 class="mb-3">
+                <i class="fas fa-image text-warning"></i> Branding
+              </h5>
+
+              <div class="form-group">
+                <label for="{{ form.logo.id_for_label }}">
+                  {{ form.logo.label }}
+                </label>
+                
+                {% if config and config.logo %}
+                  <div class="mb-3">
+                    <p class="text-muted"><small>Logo actual:</small></p>
+                    <img src="{{ config.logo.url }}" alt="Logo" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                  </div>
+                {% endif %}
+
+                {{ form.logo }}
+                <small class="form-text text-muted">
+                  Formatos soportados: PNG, JPG, GIF. Tamaño máximo: 5MB
+                </small>
+                {% if form.logo.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.logo.errors }}
+                  </small>
+                {% endif %}
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}">
+                  {{ form.descripcion.label }}
+                </label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.descripcion.errors }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Configuración de Email Gmail -->
+            <div class="form-group">
+              <h5 class="mb-3">
+                <i class="fas fa-envelope text-danger"></i> Configuración de Email (Gmail)
+              </h5>
+
+              <div class="alert alert-info">
+                <small>
+                  <strong>¿Cómo obtener la contraseña de aplicación?</strong><br>
+                  1. Ve a <a href="https://myaccount.google.com/" target="_blank">myaccount.google.com</a><br>
+                  2. Entra en "Seguridad" (Security)<br>
+                  3. Activa "Verificación en dos pasos" si no la tienes<br>
+                  4. Busca "Contraseñas de aplicaciones" (App passwords)<br>
+                  5. Selecciona "Correo" y "Windows"<br>
+                  6. Google generará una contraseña de 16 caracteres - cópiala aquí
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="{{ form.gmail_app_password.id_for_label }}">
+                  {{ form.gmail_app_password.label }}
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  {{ form.gmail_app_password }}
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="button" id="toggle-password" title="Mostrar/Ocultar">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <small class="form-text text-muted">
+                  Contraseña de 16 caracteres sin espacios. Esta es necesaria para enviar facturas por email a los clientes.
+                </small>
+                {% if form.gmail_app_password.errors %}
+                  <small class="form-text text-danger">
+                    {{ form.gmail_app_password.errors }}
+                  </small>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              {% if config %}
+                Actualizar Configuración
+              {% else %}
+                Crear Configuración
+              {% endif %}
+            </button>
+            <a href="{% url 'possitema:dashboard' %}" class="btn btn-secondary">
+              <i class="fas fa-times"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="col-md-4">
+      <!-- Current Configuration -->
+      <div class="card card-outline card-info">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-eye"></i> Vista Previa
+          </h3>
+        </div>
+
+        <div class="card-body">
+          {% if config %}
+            <div class="text-center mb-3">
+              {% if config.logo %}
+                <img src="{{ config.logo.url }}" alt="Logo" class="img-fluid" style="max-width: 150px; max-height: 120px;">
+              {% else %}
+                <div class="alert alert-light">
+                  <i class="fas fa-image fa-3x text-muted"></i>
+                  <p class="text-muted mt-2">Sin logo</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <h5 class="mb-1">{{ config.nombre_empresa }}</h5>
+            <p class="text-muted mb-2">
+              <small>
+                <strong>RUC:</strong> {{ config.ruc }}
+              </small>
+            </p>
+
+            {% if config.direccion %}
+              <p class="text-muted mb-2">
+                <small>
+                  <i class="fas fa-map-marker-alt"></i> {{ config.direccion }}
+                </small>
+              </p>
+            {% endif %}
+
+            {% if config.telefono_celular or config.telefono_convencional %}
+              <p class="text-muted mb-2">
+                <small>
+                  <i class="fas fa-phone"></i>
+                  {% if config.telefono_celular %}
+                    {{ config.telefono_celular }}
+                  {% endif %}
+                  {% if config.telefono_convencional %}
+                    / {{ config.telefono_convencional }}
+                  {% endif %}
+                </small>
+              </p>
+            {% endif %}
+
+            {% if config.email %}
+              <p class="text-muted mb-2">
+                <small>
+                  <i class="fas fa-envelope"></i> {{ config.email }}
+                </small>
+              </p>
+            {% endif %}
+
+            {% if config.sitio_web %}
+              <p class="text-muted mb-2">
+                <small>
+                  <i class="fas fa-globe"></i>
+                  <a href="{{ config.sitio_web }}" target="_blank">
+                    {{ config.sitio_web }}
+                  </a>
+                </small>
+              </p>
+            {% endif %}
+
+            <div class="mt-3 pt-3 border-top">
+              <p class="text-muted">
+                <small>
+                  <strong>IVA:</strong> {{ config.iva_porcentaje }}%
+                </small>
+              </p>
+              <p class="text-muted">
+                <small>
+                  <strong>Última actualización:</strong> {{ config.fecha_actualizacion|date:"d/m/Y H:i" }}
+                </small>
+              </p>
+            </div>
+
+            {% if config.descripcion %}
+              <div class="mt-3 pt-3 border-top">
+                <p class="text-muted">
+                  <small>{{ config.descripcion }}</small>
+                </p>
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>Sin configuración</strong>
+              <p class="text-sm mt-2">
+                Aún no has creado una configuración de empresa. Completa el formulario a la izquierda para comenzar.
+              </p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Help Box -->
+      <div class="card card-outline card-secondary">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-question-circle"></i> Información
+          </h3>
+        </div>
+
+        <div class="card-body">
+          <p class="text-sm">
+            <strong>📋 Campos Obligatorios:</strong>
+            <br>
+            • Nombre de la Empresa
+            <br>
+            • RUC/NIT
+          </p>
+
+          <hr>
+
+          <p class="text-sm">
+            <strong>✨ Dónde aparece esta información:</strong>
+            <br>
+            • En todos los tickets de venta
+            <br>
+            • En las facturas SRI
+            <br>
+            • En tu branding empresarial
+          </p>
+
+          <hr>
+
+          <p class="text-sm text-muted">
+            <i class="fas fa-lock"></i>
+            <strong>Seguridad:</strong> Solo superusuarios pueden editar esta configuración.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-control, .form-control:focus {
+    border-color: #007bff;
+  }
+  
+  .form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  .img-thumbnail {
+    padding: 0.25rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+  }
+</style>
+
+<script>
+  // Toggle para mostrar/ocultar contraseña
+  document.getElementById('toggle-password').addEventListener('click', function() {
+    const passwordField = document.getElementById('id_gmail_app_password');
+    const icon = this.querySelector('i');
+    
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      passwordField.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  });
+</script>
+{% endblock %}

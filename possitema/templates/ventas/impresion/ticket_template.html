@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket de Venta #{{ venta.id_venta }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        .ticket-header {
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .ticket-header h2 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .ticket-header p {
+            font-size: 10px;
+            margin: 2px 0;
+        }
+        
+        .ticket-number {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .section {
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+        
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin: 3px 0;
+        }
+        
+        .item-name {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .item-qty {
+            width: 30px;
+            text-align: center;
+        }
+        
+        .item-price {
+            width: 50px;
+            text-align: right;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin: 3px 0;
+        }
+        
+        .subtotal {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        
+        .iva {
+            font-size: 11px;
+            margin-top: 3px;
+        }
+        
+        .grand-total {
+            font-size: 13px;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+        }
+        
+        .customer-info {
+            font-size: 10px;
+        }
+        
+        .customer-info p {
+            margin: 2px 0;
+        }
+        
+        .payment-method {
+            font-size: 10px;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #000;
+        }
+        
+        .footer p {
+            margin: 3px 0;
+        }
+        
+        .thank-you {
+            text-align: center;
+            font-weight: bold;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+        
+        @media print {
+            body {
+                width: 80mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-header">
+        {% if config_empresa and config_empresa.logo %}
+            <img src="{{ config_empresa.logo.url }}" alt="Logo" style="max-width: 60mm; max-height: 30px; margin-bottom: 5px;">
+        {% endif %}
+        <h2>{{ config_empresa.nombre_empresa|default:"PUNTO DE VENTA" }}</h2>
+        <p>RUC: {{ config_empresa.ruc|default:"---" }}</p>
+        {% if config_empresa.direccion %}
+            <p>{{ config_empresa.direccion }}</p>
+        {% endif %}
+        {% if config_empresa.telefono_celular or config_empresa.telefono_convencional %}
+            <p>Tel: 
+            {% if config_empresa.telefono_celular %}{{ config_empresa.telefono_celular }}{% endif %}
+            {% if config_empresa.telefono_convencional %}/ {{ config_empresa.telefono_convencional }}{% endif %}
+            </p>
+        {% endif %}
+        {% if config_empresa.email %}
+            <p>{{ config_empresa.email }}</p>
+        {% endif %}
+        <p>--- TICKET DE VENTA ---</p>
+        <div class="ticket-number">Ticket #{{ venta.id_venta }}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">INFORMACIÓN DEL VENDEDOR</div>
+        <div class="customer-info">
+            <p>Atendido por: {{ venta.antendido_por.get_full_name|default:venta.antendido_por.username }}</p>
+            <p>Fecha: {{ venta.fecha_venta|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">CLIENTE</div>
+        <div class="customer-info">
+            {% if venta.cliente %}
+                <p>Nombre: {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</p>
+                <p>RUC/Cédula: {{ venta.cliente.id_cliente }}</p>
+            {% else %}
+                <p>Consumidor Final</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">PRODUCTOS</div>
+        {% for detalle in venta.detalles.all %}
+        <div class="item-row">
+            <div class="item-name">{{ detalle.producto.nombre }}</div>
+            <div class="item-qty">x{{ detalle.cantidad }}</div>
+            <div class="item-price">${{ detalle.subtotal|floatformat:2 }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class=\"section\">
+        <div class=\"subtotal\">
+            <div class=\"total-row\">
+                <span>Subtotal:</span>
+                <span>${{ subtotal|floatformat:2 }}</span>
+            </div>
+        </div>
+        <div class=\"iva\">
+            <div class=\"total-row\">
+                {% if venta.detalles.count > 0 %}
+                    <!-- Obtener tarifa IVA del primer producto (asumiendo que todos usan el mismo) -->
+                    {% with tarifa=venta.detalles.first.producto.tarifa_iva|default:15 %}
+                        <span>IVA ({{ tarifa }}%):</span>
+                    {% endwith %}
+                {% else %}
+                    <span>IVA (15%):</span>
+                {% endif %}
+                <span>${{ iva|floatformat:2 }}</span>
+            </div>
+        </div>
+        <div class=\"grand-total\">
+            <div class=\"total-row\">
+                <span>TOTAL:</span>
+                <span>${{ venta.total|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="payment-method">
+            <p><strong>Método de Pago:</strong> {{ venta.get_metodo_pago_display|default:"Efectivo" }}</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Gracias por su compra</p>
+        <p>¡Vuelva pronto!</p>
+    </div>
+
+    <div class="thank-you">
+        *** TICKET FISCAL ***
+    </div>
+
+    <script>
+        // Auto-imprimir al cargar
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

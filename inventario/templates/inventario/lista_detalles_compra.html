@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalles de Compras{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Detalles de Compras</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Registro de Detalles de Compra</h3>
+        </div>
+        
+        <div class="card-body">
+            {% if detalles %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID Compra</th>
+                            <th>Producto</th>
+                            <th>Cantidad Recibida</th>
+                            <th>Costo Unitario</th>
+                            <th>Subtotal</th>
+                            <th>Fecha de Caducidad</th>
+                            <th>Fecha Compra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'inventario:lista_compras' %}" class="badge badge-primary">
+                                    #{{ detalle.compra.id_compra }}
+                                </a>
+                            </td>
+                            <td>
+                                <strong>{{ detalle.producto.nombre }}</strong>
+                                <br>
+                                <small class="text-muted">{{ detalle.producto.id_producto }}</small>
+                            </td>
+                            <td>{{ detalle.cantidad_recibida }} unidades</td>
+                            <td>${{ detalle.costo_unitario|floatformat:2 }}</td>
+                            <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                            <td>
+                                {% if detalle.fecha_caducidad %}
+                                    <span class="badge badge-warning">{{ detalle.fecha_caducidad|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ detalle.compra.fecha_compra|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            {% if detalles.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if detalles.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ detalles.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Primera</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Anterior</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                            {% if detalles.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if detalles.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ detalles.next_page_number }}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paginator.num_pages }}">Última</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Siguiente</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Última</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <div class="text-center text-muted small mt-2">
+                    Mostrando página {{ detalles.number }} de {{ paginator.num_pages }} 
+                    ({{ paginator.count }} detalles totales)
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No hay detalles de compra registrados.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

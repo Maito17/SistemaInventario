@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar Eliminar Gasto - Sistema POS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirm-card {
+        border: 2px solid #dc3545;
+        border-radius: 0.5rem;
+    }
+    
+    .confirm-header {
+        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .confirm-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .gasto-preview {
+        background: #f8f9fa;
+        border-left: 4px solid #dc3545;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .gasto-preview-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .gasto-preview-row:last-child {
+        border-bottom: none;
+    }
+    
+    .gasto-preview-label {
+        font-weight: 600;
+        color: #666;
+    }
+    
+    .gasto-preview-value {
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mt-5 mb-5">
+        <div class="col-md-6 offset-md-3">
+            <!-- Tarjeta de Confirmación -->
+            <div class="confirm-card">
+                <!-- Encabezado -->
+                <div class="confirm-header">
+                    <div class="confirm-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="mb-0">¡Atención!</h2>
+                </div>
+
+                <!-- Cuerpo -->
+                <div class="card-body p-4">
+                    <h4 class="text-danger mb-3">Confirmar Eliminación de Gasto</h4>
+
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Esta acción no se puede deshacer.</strong> Una vez eliminado, el gasto y toda su información serán removidos permanentemente del sistema.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <p class="text-muted mb-3">¿Estás seguro de que deseas eliminar el siguiente gasto?</p>
+
+                    <!-- Vista Previa del Gasto -->
+                    <div class="gasto-preview">
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-hashtag"></i> ID:</span>
+                            <span class="gasto-preview-value">#{{ gasto.id_gasto }}</span>
+                        </div>
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-align-left"></i> Descripción:</span>
+                            <span class="gasto-preview-value">{{ gasto.descripcion }}</span>
+                        </div>
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-tag"></i> Tipo:</span>
+                            <span class="gasto-preview-value">
+                                {% if gasto.tipo_gasto.nombre == 'ADMINISTRACION' %}
+                                    <span class="badge badge-danger">Administración</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Venta</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-money-bill-wave"></i> Monto:</span>
+                            <span class="gasto-preview-value text-success">
+                                <strong style="font-size: 1.2rem;">${{ gasto.monto }}</strong>
+                            </span>
+                        </div>
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-calendar"></i> Fecha:</span>
+                            <span class="gasto-preview-value">{{ gasto.fecha_gasto|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="gasto-preview-row">
+                            <span class="gasto-preview-label"><i class="fas fa-info-circle"></i> Estado:</span>
+                            <span class="gasto-preview-value">
+                                {% if gasto.estado == 'PENDIENTE' %}
+                                    <span class="badge badge-secondary">Pendiente</span>
+                                {% elif gasto.estado == 'APROBADO' %}
+                                    <span class="badge badge-success">Aprobado</span>
+                                {% elif gasto.estado == 'PAGADO' %}
+                                    <span class="badge badge-primary">Pagado</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Rechazado</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <form method="POST" class="action-buttons">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg" style="flex: 1;">
+                            <i class="fas fa-trash"></i> Sí, Eliminar
+                        </button>
+                        <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary btn-lg" style="flex: 1;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </form>
+
+                    <small class="text-muted text-center d-block mt-3">
+                        <i class="fas fa-shield-alt"></i> Tip: Puedes crear un respaldo antes de eliminar
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

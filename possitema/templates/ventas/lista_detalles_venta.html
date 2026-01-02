@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalles de Ventas{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Detalles de Ventas</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Registro de Detalles de Venta</h3>
+        </div>
+        
+        <div class="card-body">
+            {% if detalles %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID Venta</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                            <th>Cliente</th>
+                            <th>Fecha Venta</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'ventas:generar_ticket' detalle.venta.id_venta %}" target="_blank" class="badge badge-primary">
+                                    #{{ detalle.venta.id_venta }}
+                                </a>
+                            </td>
+                            <td>{{ detalle.producto.nombre }}</td>
+                            <td>{{ detalle.cantidad }} unidades</td>
+                            <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                            <td><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                            <td>{{ detalle.venta.cliente.nombre|default:"Consumidor Final" }}</td>
+                            <td>{{ detalle.venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'ventas:generar_ticket' detalle.venta.id_venta %}" target="_blank" class="btn btn-info btn-xs" title="Ver Ticket">
+                                    <i class="fas fa-receipt"></i>
+                                </a>
+                                <a href="{% url 'ventas:descargar_comprobante_pdf' detalle.venta.id_venta %}" class="btn btn-danger btn-xs" title="Descargar PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            {% if detalles.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if detalles.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ detalles.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Primera</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Anterior</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                            {% if detalles.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if detalles.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ detalles.next_page_number }}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paginator.num_pages }}">Última</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Siguiente</span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">Última</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                <div class="text-center text-muted small mt-2">
+                    Mostrando página {{ detalles.number }} de {{ paginator.num_pages }} 
+                    ({{ paginator.count }} detalles totales)
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No hay detalles de venta registrados.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

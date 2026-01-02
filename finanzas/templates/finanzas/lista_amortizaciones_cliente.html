@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Amortizaciones a Clientes{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Amortizaciones a Clientes</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-history"></i> Registro de Pagos de Clientes
+        </h3>
+        <div class="card-tools">
+            <span class="badge badge-primary">
+                Total: {{ paginator.count }} pagos
+            </span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if amortizaciones %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="bg-success text-white">
+                    <tr>
+                        <th>Venta ID</th>
+                        <th>Cliente</th>
+                        <th>Monto Cobrado</th>
+                        <th>Cuota</th>
+                        <th>Fecha de Pago</th>
+                        <th>Método de Pago</th>
+                        <th>Referencia</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for amortizacion in amortizaciones %}
+                    <tr>
+                        <td>
+                            <strong>#{{ amortizacion.cuenta.venta.id_venta }}</strong>
+                        </td>
+                        <td>
+                            {{ amortizacion.cuenta.venta.cliente.nombre|default:"Sin cliente" }}
+                        </td>
+                        <td>
+                            <span class="badge badge-success">
+                                ${{ amortizacion.monto_cobrado|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">
+                                Cuota #{{ amortizacion.numero_cuota }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="fas fa-calendar-alt"></i> {{ amortizacion.fecha_cobro|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">
+                                {{ amortizacion.metodo_pago|default:"N/A" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if amortizacion.referencia %}
+                                <small class="text-muted">
+                                    {{ amortizacion.referencia }}
+                                </small>
+                            {% else %}
+                                <small class="text-muted">-</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'finanzas:detalle_cuenta_por_cobrar' amortizacion.cuenta.id %}" 
+                               class="btn btn-sm btn-info" title="Ver Detalles">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if paginator.num_pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if amortizaciones.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="Primera">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ amortizaciones.previous_page_number }}">
+                            {{ amortizaciones.previous_page_number }}
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ amortizaciones.number }} de {{ paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if amortizaciones.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ amortizaciones.next_page_number }}">
+                            {{ amortizaciones.next_page_number }}
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ paginator.num_pages }}" aria-label="Última">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="fas fa-info-circle"></i> No hay amortizaciones registradas aún.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'finanzas:lista_cuentas_por_cobrar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Cuentas por Cobrar
+        </a>
+    </div>
+</div>
+{% endblock content %}

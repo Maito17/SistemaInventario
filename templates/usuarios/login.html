@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantilla de Inicio de Sesión - Firebase Auth</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Enlace al archivo CSS externo -->
+    <link rel="stylesheet" href="{% static 'login_styles.css' %}">
+</head>
+
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 overflow-hidden">
+    <!-- Fondo de paralaje con estrellas y partículas -->
+    <div class="parallax-bg" id="parallaxBg"></div>
+    <div id="particleContainer" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Elementos decorativos flotantes -->
+    <div class="absolute top-10 left-10 w-24 h-24 bg-white bg-opacity-10 rounded-full breathing floating"></div>
+    <div class="absolute bottom-20 left-32 w-16 h-16 bg-white bg-opacity-15 rounded-full breathing"
+        style="animation-delay: -2s;"></div>
+
+    <!-- Contenedor principal del formulario -->
+    <div class="glass-effect rounded-3xl p-10 w-full max-w-md fade-in relative z-10" id="mainContainer">
+
+        <!-- Encabezado -->
+        <div class="text-center mb-10 slide-up">
+            <div class="relative inline-block">
+                <div class="pulse-ring absolute inset-0 bg-white bg-opacity-20 rounded-full"></div>
+                <div class="relative bg-white bg-opacity-20 rounded-full p-6 breathing">
+                    <svg class="w-16 h-16 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-white mt-4" id="formTitle">Iniciar Sesión</h2>
+
+            <p class="text-white text-opacity-90 mt-3" id="formSubtitle">
+                Ingresa tu email y contraseña.
+            </p>
+        </div>
+
+        <!-- Formulario -->
+        <form action="{% url 'usuarios:login' %}" method="POST" id="authForm" class="space-y-6 slide-up">
+            {% csrf_token %}
+            <!-- Campo de email (Ahora es 'username' para Django) -->
+            <div class="input-group-icon">
+                <label for="id_username" class="block text-white text-sm font-medium mb-3">Usuario</label>
+                <div class="relative">
+                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-300" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207">
+                        </path>
+                    </svg>
+                    <input type="text" id="email" name="username"
+                        class="input-focus w-full pl-12 pr-4 py-4 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-xl text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:border-white focus:bg-opacity-30"
+                        placeholder="Tu nombre de usuario" required>
+                </div>
+            </div>
+
+            <!-- Campo de contraseña -->
+            <div class="relative input-group-icon">
+                <label for="password" class="block text-white text-sm font-medium mb-3">Contraseña</label>
+                <div class="relative">
+                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-300" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                    <input type="password" id="password" name="password"
+                        class="input-focus w-full pl-12 pr-14 py-4 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-xl text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:border-white focus:bg-opacity-30"
+                        placeholder="Ingresa tu contraseña" required>
+                    <button type="button" id="togglePassword"
+                        class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white transition-all duration-300 hover:scale-110">
+                        <svg id="eyeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bloque de error de Firebase/JS (SIEMPRE PRESENTE, INICIA OCULTO) -->
+            <!-- El JavaScript lo llena con el texto de error de Firebase y lo hace visible. -->
+            <div id="errorMessage" class="error-message flex items-center space-x-3 hidden p-4">
+                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+
+            <!-- Botón de acción (Iniciar Sesión / Registrarse) -->
+            <button type="submit" id="submitBtn"
+                class="btn-hover w-full bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold py-4 px-4 rounded-xl shadow-lg shadow-indigo-500/50 flex items-center justify-center transition-all duration-300 ease-in-out relative overflow-hidden">
+                <span id="actionText">Iniciar Sesión</span>
+                <svg id="loadingIcon" class="hidden animate-spin -mr-1 ml-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+            </button>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'usuarios:registro' %}" class="text-white hover:text-indigo-200 text-sm font-medium">
+                    ¿No tienes cuenta? Regístrate aquí
+                </a>
+            </div>
+
+            <!-- Bloque de error de Django (SOLO SI LLEGA DEL BACKEND) -->
+            {% if error_message %}
+            <div id="djangoErrorMessage" class="error-message flex items-center space-x-3 mt-4 p-4 is-visible shake">
+                <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+                <!-- FIX: Aplicamos |safe para asegurar la visualización correcta del texto. -->
+                <span id="djangoErrorText">{{ error_message|safe }}</span>
+            </div>
+            {% endif %}
+
+
+        </form>
+
+    </div>
+
+    <!-- Modal de éxito (Muestra el ID del usuario) -->
+    <div id="successModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="glass-effect rounded-3xl p-10 max-w-sm w-full text-center bounce-in">
+            <div
+                class="w-20 h-20 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6 breathing">
+                <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">¡Bienvenido!</h3>
+            <p class="text-white text-opacity-90 mb-4">Has iniciado sesión correctamente con el siguiente ID:</p>
+            <p id="userUidDisplay" class="text-xs text-green-400 bg-white bg-opacity-10 p-2 rounded-lg break-all mb-8">
+            </p>
+            <button id="closeModal"
+                class="btn-hover bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-3 px-8 rounded-xl border border-white border-opacity-30 relative overflow-hidden">
+                Continuar
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Enlace al Script de JavaScript -->
+    <script type="module" src="{% static 'login_logic.js' %}"></script>
+</body>
+
+</html>

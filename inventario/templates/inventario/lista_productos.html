@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Productos{% endblock title %}
+
+{% block content_header %}
+<h1 class="m-0">Gestión de Inventario</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row mb-3">
+
+    <div class="col-md-3 col-sm-6 col-12">
+        <div class="info-box bg-info">
+            <span class="info-box-icon"><i class="fas fa-cubes"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Productos</span>
+                <span class="info-box-number">{{ total_productos }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 col-12">
+        <div class="info-box bg-success">
+            <span class="info-box-icon"><i class="fas fa-warehouse"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total Stock (Unidades)</span>
+                <span class="info-box-number">{{ total_stock }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 col-12">
+        <div class="info-box bg-warning">
+            <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Productos Bajo Stock</span>
+                <span class="info-box-number">{{ productos_bajo_stock }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 col-12">
+        <div class="info-box bg-danger">
+            <span class="info-box-icon"><i class="fas fa-calendar-times"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Próximos a Vencer</span>
+                <span class="info-box-number">{{ productos_proximos_a_vencer }}</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Listado de Productos</h3>
+        <div class="card-tools">
+            <a href="{% url 'inventario:exportar_excel' %}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-file-excel"></i> Exportar
+            </a>
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalImportarExcel">
+                <i class="fas fa-file-upload"></i> Importar
+            </button>
+            <a href="{% url 'inventario:crear' %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Agregar Nuevo Producto
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <table id="productos-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Categoría</th>
+                    <th>Fecha Caducidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id_producto }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>${{ producto.precio_venta|floatformat:2 }}</td>
+                    <td>{{ producto.cantidad }}</td>
+                    <td>{{ producto.categoria|default:"Sin Categoría" }}</td>
+                    <td>
+                        {% if producto.fecha_caducidad %}
+                        {% with estado=producto.estado_caducidad %}
+                        {% if estado.badge == "danger" %}
+                        <span class="badge badge-danger">🔴 {{ estado.estado }}</span><br>
+                        <small class="text-muted">Vence: {{ producto.fecha_caducidad }}</small>
+                        {% elif estado.badge == "warning" %}
+                        <span class="badge badge-warning">🟡 {{ estado.estado }}</span><br>
+                        <small class="text-muted">Vence: {{ producto.fecha_caducidad }}</small>
+                        {% elif estado.badge == "info" %}
+                        <span class="badge badge-info">🟢 {{ estado.estado }}</span><br>
+                        <small class="text-muted">Vence: {{ producto.fecha_caducidad }}</small>
+                        {% else %}
+                        <span class="badge badge-secondary">{{ estado.estado }}</span>
+                        {% endif %}
+                        {% endwith %}
+                        {% else %}
+                        <span class="badge badge-light">Sin fecha</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Todas las URLs de acción deben usar el namespace 'inventario:' -->
+                        <a href="{% url 'inventario:producto_qr_imprimir' pk=producto.pk %}" target="_blank"
+                            class="btn btn-primary btn-xs" title="Imprimir Código QR">
+                            <i class="fas fa-qrcode"></i>
+                        </a>
+
+                        <a href="{% url 'inventario:editar' pk=producto.pk %}" class="btn btn-warning btn-xs"
+                            title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'inventario:eliminar' pk=producto.pk %}" class="btn btn-danger btn-xs"
+                            title="Eliminar"><i class="fas fa-trash"></i></a>
+                        <a href="{% url 'inventario:detalle' pk=producto.pk %}" class="btn btn-info btn-xs"
+                            title="Ver Detalle"><i class="fas fa-eye"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay productos registrados en el inventario.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        {% include "includes/pagination.html" %}
+    </div>
+</div>
+<!-- Modal Importar Excel -->
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" role="dialog" aria-labelledby="modalImportarExcelLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalImportarExcelLabel">Importar Productos desde Excel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{% url 'inventario:importar_excel' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="excel_file">Seleccionar archivo Excel (.xlsx)</label>
+                        <input type="file" name="excel_file" id="excel_file" class="form-control" accept=".xlsx, .xls"
+                            required>
+                        <small class="form-text text-muted">
+                            El archivo debe tener las siguientes columnas: ID, Nombre, Descripción, Costo, Venta, Stock,
+                            Categoría, IVA, Estado, Caducidad.
+                            <br>
+                            <strong>Nota:</strong> Si el ID ya existe, se actualizará el producto.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
