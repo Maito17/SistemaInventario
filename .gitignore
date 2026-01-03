@@ -1,0 +1,34 @@
+# Python
+*.pyc
+__pycache__/
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+staticfiles/
+media/
+
+# VS Code
+.vscode/
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Archivos de entorno
+.env
+
+# Otros
+*.sqlite3
+*.db
+
+# MacOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Procfile
+Procfile
