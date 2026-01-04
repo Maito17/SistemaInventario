@@ -31,4 +31,6 @@ venv/
 # Node
 node_modules/
 
+verify_isolation/
+
 
