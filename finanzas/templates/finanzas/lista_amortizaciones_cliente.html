@@ -14,9 +14,12 @@
             <i class="fas fa-history"></i> Registro de Pagos de Clientes
         </h3>
         <div class="card-tools">
-            <span class="badge badge-primary">
-                Total: {{ paginator.count }} pagos
-            </span>
+                <span class="badge badge-primary">
+                    Total: {{ paginator.count }} pagos
+                </span>
+                <a href="{% url 'finanzas:nuevo_pago_cliente' %}" class="btn btn-success btn-sm ml-2">
+                    <i class="fas fa-plus"></i> Nuevo Pago
+                </a>
         </div>
     </div>
     

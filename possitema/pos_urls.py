@@ -18,4 +18,6 @@ urlpatterns = [
     path('buscar_nombre/', views.buscar_por_nombre_ajax, name='buscar_nombre_ajax'),
     path('buscar_codigo/', views.buscar_por_codigo_ajax, name='buscar_codigo_ajax'),
     path('procesar_venta/', views.procesar_venta_ajax, name='procesar_venta_ajax'),
+    # Enviar comprobante por email
+    path('enviar_email/<int:pk>/', ventas_views.enviar_venta_email, name='enviar_email'),
 ]

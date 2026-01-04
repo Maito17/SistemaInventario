@@ -3,6 +3,16 @@
 import os
 import sys
 
+# Workaround for Django 6.0 + mysqlclient compatibility issue
+# Django 6.0 expects Database.__version__ but mysqlclient 2.2+ doesn't have it
+try:
+    import MySQLdb
+    if not hasattr(MySQLdb, '__version__'):
+        # Create __version__ from version_info tuple
+        MySQLdb.__version__ = '.'.join(map(str, MySQLdb.version_info[:3]))
+except ImportError:
+    pass  # MySQLdb not installed, Django will handle this
+
 
 def main():
     """Run administrative tasks."""

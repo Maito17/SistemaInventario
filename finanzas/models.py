@@ -101,10 +101,20 @@ class CuentaPorCobrar(models.Model):
     """Registro general de deuda de clientes"""
     owner = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='cuentas_por_cobrar', null=True, blank=True)
     venta = models.OneToOneField(
-        Venta, 
-        on_delete=models.CASCADE, 
+        Venta,
+        on_delete=models.CASCADE,
         related_name='cuenta_por_cobrar',
-        verbose_name="Venta"
+        verbose_name="Venta",
+        null=True,
+        blank=True
+    )
+    cliente = models.ForeignKey(
+        'cliente.Cliente',
+        on_delete=models.CASCADE,
+        related_name='cuentas_por_cobrar',
+        null=True,
+        blank=True,
+        verbose_name="Cliente"
     )
     monto_total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto Total")
     monto_cobrado = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Monto Cobrado")
@@ -123,7 +133,13 @@ class CuentaPorCobrar(models.Model):
     )
     
     def __str__(self):
-        return f"Deuda Venta #{self.venta.id_venta} - Cliente: {self.venta.cliente} - ${self.saldo}"
+        if self.venta:
+            cliente_nombre = self.venta.cliente.nombre if self.venta.cliente else "Sin cliente"
+            return f"Deuda Venta #{self.venta.id_venta} - Cliente: {cliente_nombre} - ${self.saldo}"
+        elif self.cliente:
+            return f"Deuda Crédito Directo - Cliente: {self.cliente.nombre} - ${self.saldo}"
+        else:
+            return f"Deuda Crédito Directo - Sin cliente - ${self.saldo}"
     
     def actualizar_saldo(self):
         """Actualiza automáticamente el saldo basado en los cobros realizados"""

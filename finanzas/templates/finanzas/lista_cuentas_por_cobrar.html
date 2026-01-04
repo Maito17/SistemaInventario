@@ -12,14 +12,17 @@
     <div class="card-header">
         <h3 class="card-title">Cuentas por Cobrar</h3>
         <div class="card-tools">
-            <form method="GET" class="form-inline">
-                <select name="estado" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
-                    <option value="">-- Todos los Estados --</option>
-                    <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
-                    <option value="PARCIAL" {% if estado_filter == 'PARCIAL' %}selected{% endif %}>Pago Parcial</option>
-                    <option value="PAGADA" {% if estado_filter == 'PAGADA' %}selected{% endif %}>Pagada</option>
-                </select>
-            </form>
+                <form method="GET" class="form-inline" style="display:inline-block;">
+                    <select name="estado" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                        <option value="">-- Todos los Estados --</option>
+                        <option value="PENDIENTE" {% if estado_filter == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                        <option value="PARCIAL" {% if estado_filter == 'PARCIAL' %}selected{% endif %}>Pago Parcial</option>
+                        <option value="PAGADA" {% if estado_filter == 'PAGADA' %}selected{% endif %}>Pagada</option>
+                    </select>
+                </form>
+                <a href="{% url 'finanzas:nuevo_cobro' %}" class="btn btn-success btn-sm ml-2">
+                    <i class="fas fa-plus"></i> Nuevo Cobro
+                </a>
         </div>
     </div>
     
@@ -53,8 +56,22 @@
                 <tbody>
                     {% for cuenta in cuentas %}
                     <tr>
-                        <td>#{{ cuenta.venta.id_venta }}</td>
-                        <td>{{ cuenta.venta.cliente.nombre|default:"Cliente sin nombre" }}</td>
+                        <td>
+                            {% if cuenta.venta %}
+                                #{{ cuenta.venta.id_venta }}
+                            {% else %}
+                                Crédito directo
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cuenta.venta and cuenta.venta.cliente %}
+                                {{ cuenta.venta.cliente.nombre|default:"Cliente sin nombre" }}
+                            {% elif cuenta.cliente %}
+                                {{ cuenta.cliente.nombre|default:"Cliente sin nombre" }}
+                            {% else %}
+                                Cliente crédito
+                            {% endif %}
+                        </td>
                         <td>${{ cuenta.monto_total|floatformat:2 }}</td>
                         <td>${{ cuenta.monto_cobrado|floatformat:2 }}</td>
                         <td><strong>${{ cuenta.saldo|floatformat:2 }}</strong></td>

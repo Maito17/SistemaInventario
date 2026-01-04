@@ -14,8 +14,7 @@ from pathlib import Path
 import os
 import sys
 
-import pymysql
-pymysql.install_as_MySQLdb()
+
 
 # Intentar cargar variables de entorno desde .env (opcional)
 try:

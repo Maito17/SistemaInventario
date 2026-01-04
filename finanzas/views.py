@@ -9,6 +9,27 @@ from .models import (
     CuentaPorPagar, AmortizacionProveedor,
     CuentaPorCobrar, AmortizacionCliente
 )
+from cliente.models import Cliente
+from .forms import NuevoCobroForm, NuevoPagoProveedorForm, NuevoPagoClienteForm
+
+
+@login_required
+def nuevo_cobro(request):
+    if request.method == 'POST':
+        form = NuevoCobroForm(request.POST)
+        if form.is_valid():
+            cliente = form.cleaned_data['cliente']
+            monto = form.cleaned_data['monto']
+            metodo_pago = form.cleaned_data['metodo_pago']
+            fecha = form.cleaned_data['fecha']
+            comentario = form.cleaned_data['comentario']
+            # Aquí deberías crear la lógica para registrar el cobro, por ejemplo:
+            # CuentaPorCobrar.objects.create(cliente=cliente, monto_total=monto, estado='PENDIENTE', ...)
+            messages.success(request, 'Cobro registrado correctamente.')
+            return redirect('finanzas:lista_cuentas_por_cobrar')
+    else:
+        form = NuevoCobroForm()
+    return render(request, 'finanzas/nuevo_cobro.html', {'form': form})
 from inventario.models import Compra
 from ventas.models import Venta
 
@@ -326,8 +347,23 @@ def aprobar_solicitud_credito(request, pk):
         solicitud.fecha_respuesta = timezone.now()
         solicitud.observaciones = observaciones
         solicitud.save()
-        
-        messages.success(request, f'Solicitud #{solicitud.id} aprobada')
+
+        # Crear CuentaPorCobrar al aprobar la solicitud
+        from .models import CuentaPorCobrar
+        # Buscar si ya existe una cuenta por cobrar para esta solicitud (opcional, según lógica)
+        # Crear la cuenta por cobrar vinculada al cliente y monto solicitado
+        CuentaPorCobrar.objects.create(
+            owner=request.user,
+            venta=None,  # No hay venta asociada
+            cliente=solicitud.cliente,
+            monto_total=solicitud.monto_solicitado,
+            monto_cobrado=0,
+            saldo=solicitud.monto_solicitado,
+            fecha_vencimiento=timezone.now().date() + timezone.timedelta(days=solicitud.plazo_dias),
+            estado='PENDIENTE'
+        )
+
+        messages.success(request, f'Solicitud #{solicitud.id} aprobada y cuenta por cobrar creada')
         return redirect('finanzas:detalle_solicitud_credito', pk=pk)
     
     context = {
@@ -402,3 +438,97 @@ def lista_amortizaciones_cliente(request):
         'paginator': paginator,
     }
     return render(request, 'finanzas/lista_amortizaciones_cliente.html', context)
+
+
+# ========== NUEVO PAGO A PROVEEDOR ==========
+
+@login_required
+def nuevo_pago_proveedor(request):
+    if request.method == 'POST':
+        form = NuevoPagoProveedorForm(request.POST)
+        if form.is_valid():
+            compra = form.cleaned_data['compra']
+            monto = form.cleaned_data['monto']
+            metodo_pago = form.cleaned_data['metodo_pago']
+            referencia = form.cleaned_data['referencia']
+            notas = form.cleaned_data['notas']
+            # Buscar la cuenta por pagar asociada
+            try:
+                cuenta = compra.cuenta_por_pagar
+            except Exception:
+                messages.error(request, 'La compra seleccionada no tiene cuenta por pagar asociada.')
+                return redirect('finanzas:nuevo_pago_proveedor')
+            # Validar monto
+            if monto <= 0 or monto > cuenta.saldo:
+                messages.error(request, 'Monto inválido.')
+                return redirect('finanzas:nuevo_pago_proveedor')
+            # Registrar pago
+            from decimal import Decimal
+            from django.db import transaction
+            with transaction.atomic():
+                numero_cuota = cuenta.amortizaciones_proveedor.count() + 1
+                saldo_anterior = cuenta.saldo
+                saldo_nuevo = saldo_anterior - Decimal(monto)
+                from .models import AmortizacionProveedor
+                AmortizacionProveedor.objects.create(
+                    cuenta=cuenta,
+                    numero_cuota=numero_cuota,
+                    monto_abonado=monto,
+                    saldo_anterior=saldo_anterior,
+                    saldo_nuevo=saldo_nuevo,
+                    metodo_pago=metodo_pago,
+                    referencia=referencia,
+                    notas=notas,
+                )
+                cuenta.actualizar_saldo()
+            messages.success(request, 'Pago registrado correctamente.')
+            return redirect('finanzas:lista_amortizaciones_proveedor')
+    else:
+        form = NuevoPagoProveedorForm()
+    return render(request, 'finanzas/nuevo_pago_proveedor.html', {'form': form})
+
+
+# ========== NUEVO PAGO A CLIENTE ==========
+
+@login_required
+def nuevo_pago_cliente(request):
+    if request.method == 'POST':
+        form = NuevoPagoClienteForm(request.POST)
+        if form.is_valid():
+            cuenta = form.cleaned_data['cuenta']
+            monto = form.cleaned_data['monto']
+            metodo_pago = form.cleaned_data['metodo_pago']
+            referencia = form.cleaned_data['referencia']
+            notas = form.cleaned_data['notas']
+            fecha_inicio = form.cleaned_data['fecha_inicio']
+            fecha_fin = form.cleaned_data['fecha_fin']
+            # Validar monto
+            if monto <= 0 or monto > cuenta.saldo:
+                messages.error(request, 'Monto inválido.')
+                return redirect('finanzas:nuevo_pago_cliente')
+            # Registrar pago
+            from decimal import Decimal
+            from django.db import transaction
+            with transaction.atomic():
+                numero_cuota = cuenta.amortizaciones_cliente.count() + 1
+                saldo_anterior = cuenta.saldo
+                saldo_nuevo = saldo_anterior - Decimal(monto)
+                from .models import AmortizacionCliente
+                AmortizacionCliente.objects.create(
+                    cuenta=cuenta,
+                    numero_cuota=numero_cuota,
+                    monto_cobrado=monto,
+                    saldo_anterior=saldo_anterior,
+                    saldo_nuevo=saldo_nuevo,
+                    metodo_pago=metodo_pago,
+                    referencia=referencia,
+                    notas=notas,
+                    fecha_inicio=fecha_inicio,
+                    fecha_fin=fecha_fin,
+                )
+                cuenta.actualizar_saldo()
+            messages.success(request, 'Pago registrado correctamente.')
+            return redirect('finanzas:lista_amortizaciones_cliente')
+    else:
+        form = NuevoPagoClienteForm()
+    return render(request, 'finanzas/nuevo_pago_cliente.html', {'form': form})

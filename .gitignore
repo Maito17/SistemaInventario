@@ -7,7 +7,7 @@ __pycache__/
 *.pot
 *.pyc
 __pycache__/
-staticfiles/
+#staticfiles/
 media/
 
 # VS Code
@@ -20,6 +20,7 @@ venv/
 # Archivos de entorno
 .env
 
+
 # Otros
 *.sqlite3
 *.db
@@ -30,5 +31,4 @@ venv/
 # Node
 node_modules/
 
-# Procfile
-Procfile
+

@@ -17,5 +17,3 @@ gunicorn
 whitenoise
 python-dotenv
 mysqlclient
-
-

@@ -70,9 +70,9 @@ def buscar_productos_api(request):
             return JsonResponse({'productos': []})
         
         # Buscar productos
+        from django.db.models import Q
         productos = Producto.objects.filter(
-            user=request.user,
-            nombre__icontains=q,
+            Q(nombre__icontains=q) | Q(id_producto__icontains=q),
             cantidad__gt=0
         ).order_by('nombre').values('id_producto', 'nombre', 'precio_venta', 'cantidad')[:15]
         
@@ -581,13 +581,19 @@ def crear_compra(request):
                 
                 # Si la compra se crea como RECIBIDA, crear la CuentaPorPagar
                 if compra.estado == 'RECIBIDA':
-                    CuentaPorPagar.objects.create(
-                        compra=compra,
-                        monto_total=compra.total,
-                        saldo=compra.total,
-                        fecha_vencimiento=compra.fecha_pago_proveedor,
-                        estado='PENDIENTE'
-                    )
+                    print(f"[DEBUG] Intentando crear CuentaPorPagar para compra {compra.id_compra} (usuario: {request.user})")
+                    try:
+                        cuenta = CuentaPorPagar.objects.create(
+                            compra=compra,
+                            monto_total=compra.total,
+                            saldo=compra.total,
+                            fecha_vencimiento=compra.fecha_pago_proveedor,
+                            estado='PENDIENTE',
+                            owner=request.user
+                        )
+                        print(f"[DEBUG] CuentaPorPagar creada: {cuenta}")
+                    except Exception as e:
+                        print(f"[ERROR] No se pudo crear CuentaPorPagar: {e}")
                 
                 messages.success(request, f'Compra #{compra.id_compra} creada exitosamente.')
                 return redirect('inventario:lista_compras')
@@ -729,27 +735,34 @@ def editar_compra(request, pk):
                 
                 # Si la compra cambia a RECIBIDA, crear o actualizar la CuentaPorPagar
                 if compra.estado == 'RECIBIDA':
-                    cuenta_por_pagar, created = CuentaPorPagar.objects.get_or_create(
-                        compra=compra,
-                        defaults={
-                            'monto_total': compra.total,
-                            'saldo': compra.total,
-                            'fecha_vencimiento': compra.fecha_pago_proveedor,
-                            'estado': 'PENDIENTE'
-                        }
-                    )
-                    # Si ya existía, actualizar los montos
-                    if not created:
-                        cuenta_por_pagar.monto_total = compra.total
-                        cuenta_por_pagar.saldo = compra.total - cuenta_por_pagar.monto_pagado
-                        cuenta_por_pagar.fecha_vencimiento = compra.fecha_pago_proveedor
-                        if cuenta_por_pagar.saldo <= 0:
-                            cuenta_por_pagar.estado = 'PAGADA'
-                        elif cuenta_por_pagar.monto_pagado > 0:
-                            cuenta_por_pagar.estado = 'PARCIAL'
-                        else:
-                            cuenta_por_pagar.estado = 'PENDIENTE'
-                        cuenta_por_pagar.save()
+                    print(f"[DEBUG] Intentando get_or_create CuentaPorPagar para compra {compra.id_compra} (usuario: {request.user})")
+                    try:
+                        cuenta_por_pagar, created = CuentaPorPagar.objects.get_or_create(
+                            compra=compra,
+                            defaults={
+                                'monto_total': compra.total,
+                                'saldo': compra.total,
+                                'fecha_vencimiento': compra.fecha_pago_proveedor,
+                                'estado': 'PENDIENTE',
+                                'owner': request.user
+                            }
+                        )
+                        print(f"[DEBUG] CuentaPorPagar {'creada' if created else 'encontrada'}: {cuenta_por_pagar}")
+                        # Si ya existía, actualizar los montos y el owner
+                        if not created:
+                            cuenta_por_pagar.monto_total = compra.total
+                            cuenta_por_pagar.saldo = compra.total - cuenta_por_pagar.monto_pagado
+                            cuenta_por_pagar.fecha_vencimiento = compra.fecha_pago_proveedor
+                            cuenta_por_pagar.owner = request.user
+                            if cuenta_por_pagar.saldo <= 0:
+                                cuenta_por_pagar.estado = 'PAGADA'
+                            elif cuenta_por_pagar.monto_pagado > 0:
+                                cuenta_por_pagar.estado = 'PARCIAL'
+                            else:
+                                cuenta_por_pagar.estado = 'PENDIENTE'
+                            cuenta_por_pagar.save()
+                    except Exception as e:
+                        print(f"[ERROR] No se pudo crear/actualizar CuentaPorPagar: {e}")
                 
                 messages.success(request, f'✅ Compra #{compra.id_compra} actualizada exitosamente (Estado: {compra.get_estado_display()}) con {detalles_guardados} producto(s).')
                 return redirect('inventario:lista_compras')

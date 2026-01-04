@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Pago de Cliente{% endblock %}
+{% block content_header %}
+    <h1 class="m-0">Registrar Nuevo Pago de Cliente</h1>
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.cuenta.label_tag }}
+                {{ form.cuenta }}
+            </div>
+            <div class="form-group">
+                {{ form.monto.label_tag }}
+                {{ form.monto }}
+            </div>
+            <div class="form-group">
+                {{ form.metodo_pago.label_tag }}
+                {{ form.metodo_pago }}
+            </div>
+            <div class="form-group">
+                {{ form.referencia.label_tag }}
+                {{ form.referencia }}
+            </div>
+            <div class="form-group">
+                {{ form.notas.label_tag }}
+                {{ form.notas }}
+            </div>
+            <div class="form-group">
+                {{ form.fecha_inicio.label_tag }}
+                {{ form.fecha_inicio }}
+            </div>
+            <div class="form-group">
+                {{ form.fecha_fin.label_tag }}
+                {{ form.fecha_fin }}
+            </div>
+            <button type="submit" class="btn btn-success">Registrar Pago</button>
+            <a href="{% url 'finanzas:lista_amortizaciones_cliente' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

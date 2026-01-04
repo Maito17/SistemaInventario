@@ -57,19 +57,27 @@ class AmortizacionClienteInline(admin.TabularInline):
     extra = 0
 
 class CuentaPorCobrarAdmin(admin.ModelAdmin):
-    list_display = ('venta', 'monto_total', 'monto_cobrado', 'saldo', 'estado', 'fecha_creacion')
-    list_filter = ('estado', 'fecha_creacion', 'fecha_vencimiento')
-    search_fields = ('venta__id_venta', 'venta__cliente__nombre')
+    list_display = ('venta', 'cliente', 'monto_total', 'monto_cobrado', 'saldo', 'estado', 'fecha_creacion')
+    list_filter = ('estado', 'fecha_creacion', 'fecha_vencimiento', 'cliente')
+    search_fields = ('venta__id_venta', 'venta__cliente__nombre', 'cliente__nombre')
     readonly_fields = ('monto_cobrado', 'saldo', 'fecha_creacion')
     inlines = [AmortizacionClienteInline]
     fieldsets = (
         ('Información de la Deuda', {
-            'fields': ('venta', 'monto_total', 'monto_cobrado', 'saldo', 'estado')
+            'fields': ('venta', 'cliente', 'monto_total', 'monto_cobrado', 'saldo', 'estado'),
+            'description': 'Puede dejar "venta" vacío para cuentas por cobrar directas.'
         }),
         ('Fechas', {
             'fields': ('fecha_creacion', 'fecha_vencimiento')
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        # Validar que al menos uno de venta o cliente esté presente
+        if not obj.venta and not obj.cliente:
+            from django.core.exceptions import ValidationError
+            raise ValidationError('Debe seleccionar una venta o un cliente para la cuenta por cobrar.')
+        super().save_model(request, obj, form, change)
 
 class AmortizacionClienteAdmin(admin.ModelAdmin):
     list_display = ('cuenta', 'numero_cuota', 'monto_cobrado', 'saldo_nuevo', 'fecha_cobro', 'metodo_pago')

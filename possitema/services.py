@@ -33,6 +33,7 @@ def registrar_venta_completa(user, carrito_data, total_venta_calculado, cliente_
     """
     
     # Iniciar la transacción atómica: si algo falla, todo se revierte
+    from finanzas.models import CuentaPorCobrar
     with transaction.atomic():
         # 1. Obtener Cliente (si existe)
         cliente = None
@@ -52,6 +53,7 @@ def registrar_venta_completa(user, carrito_data, total_venta_calculado, cliente_
         # 2. Crear la instancia de Venta (usando 'antendido_por', 'total' y 'caja')
         venta = Venta.objects.create(
             antendido_por=user,
+            owner=user,
             cliente=cliente, 
             total=total_venta_calculado,
             caja=caja  # Vincular la venta a la caja activa
@@ -94,5 +96,18 @@ def registrar_venta_completa(user, carrito_data, total_venta_calculado, cliente_
         # 4. Guardar todos los detalles y actualizar stock en masa
         DetalleVenta.objects.bulk_create(detalles_a_crear)
         Producto.objects.bulk_update(productos_a_actualizar, ['cantidad']) 
+
+        # 5. Crear CuentaPorCobrar si la venta es a crédito
+        if hasattr(venta, 'es_credito') and venta.es_credito:
+            # Usar monto_credito si está definido, si no usar total
+            monto_credito = venta.monto_credito if venta.monto_credito > 0 else venta.total
+            CuentaPorCobrar.objects.create(
+                owner=user,
+                venta=venta,
+                monto_total=monto_credito,
+                monto_cobrado=venta.monto_pagado,
+                saldo=monto_credito - venta.monto_pagado,
+                fecha_vencimiento=venta.fecha_vencimiento,
+            )
 
         return venta
