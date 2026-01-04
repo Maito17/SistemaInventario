@@ -33,4 +33,12 @@ node_modules/
 
 verify_isolation/
 
+# Archivos de recolección de estáticos (Railway los generará allá)
+staticfiles/
 
+# Logs de Gunicorn (el servidor que usará Railway)
+gunicorn_access.log
+gunicorn_error.log
+
+# Archivos temporales de sistema
+Thumbs.db
