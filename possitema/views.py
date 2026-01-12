@@ -739,3 +739,40 @@ def actualizar_ingresos_ajax(request):
     }
     
     return JsonResponse(data)
+@csrf_exempt
+@require_POST
+@login_required
+def ia_ventas(request):
+    """
+    Vista AJAX que conecta el POS con Gemini para consultoría de ventas.
+    """
+    try:
+        if not GEMINI_API_KEY:
+            return JsonResponse({'error': 'La IA no está configurada (Falta API Key)'}, status=500)
+
+        data = json.loads(request.body)
+        pregunta = data.get('pregunta', '')
+
+        if not pregunta:
+            return JsonResponse({'error': 'No se recibió ninguna pregunta'}, status=400)
+
+        # Configuración del modelo y prompt de contexto
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Le damos un contexto profesional para que ayude al dueño del negocio
+        prompt_sistema = (
+            f"Eres un consultor experto en negocios y ventas para un sistema POS. "
+            f"El usuario actual es: {request.user.username}. "
+            f"Responde de forma concisa, profesional y motivadora a la siguiente consulta: {pregunta}"
+        )
+
+        response = model.generate_content(prompt_sistema)
+        
+        return JsonResponse({
+            'success': True,
+            'respuesta': response.text
+        })
+
+    except Exception as e:
+        print(f"Error en Gemini: {str(e)}")
+        return JsonResponse({'error': 'Error al conectar con el servicio de IA'}, status=500)
