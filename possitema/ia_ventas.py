@@ -1,14 +1,11 @@
+
 import os
 import json
 import google.generativeai as genai
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-import json
-import os
 
-# Usa tu propia clave de OpenAI aquí o desde variables de entorno
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', 'AQUI_TU_API_KEY')
 
 PROMPT_BASE = (
     "Eres un asistente experto en ventas, estrategias comerciales, recuperación de clientes y análisis de mercado. "
@@ -24,19 +21,17 @@ def ia_ventas(request):
     if not pregunta:
         return JsonResponse({'error': 'Pregunta vacía'}, status=400)
 
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    if not GEMINI_API_KEY:
+        return JsonResponse({'error': 'No se encontró GEMINI_API_KEY'}, status=500)
+
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel("gemini-flash-latest")
+
     prompt = PROMPT_BASE + f"\nPregunta: {pregunta}\nRespuesta:"
     try:
-        openai.api_key = OPENAI_API_KEY
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": PROMPT_BASE},
-                {"role": "user", "content": pregunta}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-        respuesta = response.choices[0].message['content'].strip()
+        response = model.generate_content(prompt)
+        respuesta = response.text.strip()
         return JsonResponse({'respuesta': respuesta})
     except Exception as e:
         print('Error IA Gemini:', str(e))

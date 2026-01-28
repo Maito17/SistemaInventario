@@ -67,11 +67,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # <--- COLÓCALO AQUÍ
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'possitema.middleware.SuscripcionActivaRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -172,8 +173,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jd15325@gmail.com'
-# La contraseña se cargará dinámicamente desde ConfiguracionEmpresa
-EMAIL_HOST_PASSWORD = 'dqfj pjfq vymw ptyg'  # Contraseña por defecto, se sobrescribe si existe en BD
+# La contraseña se cargará dinámicamente desde ConfiguracionEmpresa o desde la variable de entorno
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # Evitar secretos en el repositorio
 
 LOGIN_REDIRECT_URL = '/pos/dashboard/'
 LOGIN_URL = '/usuarios/login/'
