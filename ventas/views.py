@@ -289,7 +289,8 @@ def buscar_productos_vivo(request):
             # Buscar por id_producto o nombre
             productos = Producto.objects.filter(
                 Q(id_producto__icontains=query) | Q(nombre__icontains=query),
-                cantidad__gt=0  # Solo mostrar productos con stock
+                cantidad__gt=0,  # Solo mostrar productos con stock
+                user=request.user
             )[:10]  # Limitar a 10 resultados
             
             data = [
@@ -327,7 +328,8 @@ def buscar_por_codigo_ajax(request):
             # Intentamos varias estrategias para ser tolerantes con formatos
             from django.db.models import Q
             producto = Producto.objects.filter(
-                Q(id_producto__iexact=codigo) | Q(id_producto__icontains=codigo) | Q(nombre__icontains=codigo)
+                Q(id_producto__iexact=codigo) | Q(id_producto__icontains=codigo) | Q(nombre__icontains=codigo),
+                user=request.user
             ).first()
 
             # Si no se encontró, intentar un fallback: buscar productos cuyo
@@ -337,10 +339,10 @@ def buscar_por_codigo_ajax(request):
             if not producto:
                 try:
                     # Recolectar candidatos pequeños y comprobar si su id aparece en el código
-                    candidatos = Producto.objects.values_list('id_producto', flat=True)
+                    candidatos = Producto.objects.filter(user=request.user).values_list('id_producto', flat=True)
                     for pid in candidatos:
                         if pid and pid in codigo:
-                            producto = Producto.objects.filter(id_producto=pid).first()
+                            producto = Producto.objects.filter(id_producto=pid, user=request.user).first()
                             if producto:
                                 break
                 except Exception:
@@ -443,7 +445,6 @@ def dashboard_view(request):
     }
     return render(request, 'base.html')
 @login_required
-@permission_required_message('ventas.can_ver_reportes')  # Requiere permiso específico
 def reportes_ventas_periodo(request):
     from django.db.models import Sum
     from django.utils import timezone
@@ -466,10 +467,18 @@ def reportes_ventas_periodo(request):
     fin_dt = timezone.make_aware(datetime.combine(fecha_fin + timedelta(days=1), datetime.min.time()))
 
     # Obtener todas las ventas del período
-    ventas_periodo = Venta.objects.filter(
-        fecha_venta__gte=inicio_dt,
-        fecha_venta__lt=fin_dt
-    ).order_by('fecha_venta')
+    if request.user.is_staff or request.user.is_superuser:
+        ventas_periodo = Venta.objects.filter(
+            fecha_venta__gte=inicio_dt,
+            fecha_venta__lt=fin_dt
+        ).order_by('fecha_venta')
+    else:
+        # Usuarios normales sólo ven sus propias ventas
+        ventas_periodo = Venta.objects.filter(
+            fecha_venta__gte=inicio_dt,
+            fecha_venta__lt=fin_dt,
+            owner=request.user
+        ).order_by('fecha_venta')
     
     # Agrupar por día en Python para evitar problemas de zona horaria
     ventas_por_dia = defaultdict(Decimal)
@@ -503,10 +512,15 @@ def reportes_ventas_periodo(request):
     return render(request, 'ventas/reportes_ventas.html', contexto)
 
 @login_required
-@permission_required_message('ventas.can_ver_reportes')  # Requiere permiso específico
 def ranking_productos(request):
     # Obtener todos los detalles con sus cálculos
-    reporte_base = DetalleVenta.objects.values(
+    if request.user.is_staff or request.user.is_superuser:
+        detalle_qs = DetalleVenta.objects.all()
+    else:
+        # Usuarios normales sólo ven detalles de sus ventas
+        detalle_qs = DetalleVenta.objects.filter(venta__owner=request.user)
+
+    reporte_base = detalle_qs.values(
         'producto__nombre'
     ).annotate(
         cantidad_vendida=Sum('cantidad'),
@@ -533,7 +547,10 @@ def ranking_productos(request):
 @login_required
 @permission_required_message('ventas.can_anular_venta') # Requiere permiso específico
 def anular_venta(request, pk):
-    venta = get_object_or_404(Venta, pk=pk)
+    if request.user.is_staff or request.user.is_superuser:
+        venta = get_object_or_404(Venta, pk=pk)
+    else:
+        venta = get_object_or_404(Venta, pk=pk, owner=request.user)
 
     if venta.estado != 'ACT':
         messages.warning(request, f"La Venta #{pk} ya está {venta.get_estado_display().lower()}.")
@@ -575,7 +592,10 @@ def generar_ticket(request, pk):
     from decimal import Decimal
     from possitema.services import obtener_configuracion_empresa
     
-    venta = get_object_or_404(Venta, pk=pk)
+    if request.user.is_staff or request.user.is_superuser:
+        venta = get_object_or_404(Venta, pk=pk)
+    else:
+        venta = get_object_or_404(Venta, pk=pk, owner=request.user)
     
     # Calcular subtotal e IVA basándose en los detalles de venta
     detalles = venta.detalles.all()
@@ -615,7 +635,10 @@ def generar_factura_sri(request, pk):
     from decimal import Decimal
     from possitema.services import obtener_configuracion_empresa
     
-    venta = get_object_or_404(Venta, pk=pk, )
+    if request.user.is_staff or request.user.is_superuser:
+        venta = get_object_or_404(Venta, pk=pk)
+    else:
+        venta = get_object_or_404(Venta, pk=pk, owner=request.user)
     
     # Calcular subtotal e IVA basándose en los detalles de venta
     detalles = venta.detalles.all()
@@ -666,7 +689,10 @@ def enviar_venta_email(request, pk):
         return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
     
     try:
-        venta = get_object_or_404(Venta, pk=pk)
+        if request.user.is_staff or request.user.is_superuser:
+            venta = get_object_or_404(Venta, pk=pk)
+        else:
+            venta = get_object_or_404(Venta, pk=pk, owner=request.user)
         
         # Verificar si el cliente tiene email
         if not venta.cliente or not venta.cliente.email:
@@ -929,7 +955,10 @@ def descargar_comprobante_pdf(request, pk):
     from decimal import Decimal
     from possitema.services import obtener_configuracion_empresa
     
-    venta = get_object_or_404(Venta, pk=pk)
+    if request.user.is_staff or request.user.is_superuser:
+        venta = get_object_or_404(Venta, pk=pk)
+    else:
+        venta = get_object_or_404(Venta, pk=pk, owner=request.user)
     
     # Obtener configuración de la empresa
     config_empresa = obtener_configuracion_empresa(request.user)
@@ -957,8 +986,10 @@ def descargar_comprobante_pdf(request, pk):
 def lista_detalles_venta(request):
     """Muestra el listado de todos los detalles de venta."""
     from django.core.paginator import Paginator
-    
-    detalles_list = DetalleVenta.objects.select_related('venta', 'producto').order_by('-venta__fecha_venta')
+    if request.user.is_staff or request.user.is_superuser:
+        detalles_list = DetalleVenta.objects.select_related('venta', 'producto').order_by('-venta__fecha_venta')
+    else:
+        detalles_list = DetalleVenta.objects.select_related('venta', 'producto').filter(venta__owner=request.user).order_by('-venta__fecha_venta')
     
     # Paginación
     paginator = Paginator(detalles_list, 15)

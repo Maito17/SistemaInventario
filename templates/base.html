@@ -9,6 +9,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Sistema de Ventas | Dashboard{% endblock %}</title>
 
+  <link rel="icon" href="{% static 'favicon.ico' %}">
+
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" />
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}" />
@@ -33,7 +35,7 @@
           <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <a href="#" class="nav-link">Contacto</a>
+          <a href="{% url 'planes_precios' %}" class="nav-link">Planes</a>
         </li>
       </ul>
 

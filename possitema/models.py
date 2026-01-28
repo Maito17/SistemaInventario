@@ -1,7 +1,48 @@
+
 from django.db import models
+from django.utils import timezone
+from django.contrib.auth.models import User
 from inventario.models import Producto
 from cliente.models import Cliente
-from django.contrib.auth.models import User
+
+
+class Plan(models.Model):
+    NOMBRES_PLANES = [
+        ("Bronce", "Bronce"),
+        ("Plata", "Plata"),
+        ("Oro", "Oro"),
+    ]
+    nombre = models.CharField(max_length=20, choices=NOMBRES_PLANES, unique=True)
+    precio = models.DecimalField(max_digits=8, decimal_places=2)
+    duracion_dias = models.PositiveIntegerField(default=30)
+    limite_usuarios = models.PositiveIntegerField(null=True, blank=True, help_text="Número máximo de usuarios permitidos")
+    limite_productos = models.PositiveIntegerField(null=True, blank=True, help_text="Número máximo de productos permitidos")
+
+    def __str__(self):
+        return f"{self.nombre} (${self.precio})"
+
+
+class Suscripcion(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="suscripcion")
+    plan_actual = models.ForeignKey(Plan, on_delete=models.PROTECT)
+    fecha_inicio = models.DateTimeField(default=timezone.now)
+    fecha_vencimiento = models.DateTimeField()
+    esta_activa = models.BooleanField(default=True)
+
+
+    def dias_vigentes(self):
+        if self.fecha_vencimiento and timezone.now() < self.fecha_vencimiento:
+            return (self.fecha_vencimiento - timezone.now()).days
+        return 0
+
+    def save(self, *args, **kwargs):
+        if not self.fecha_vencimiento:
+            self.fecha_vencimiento = self.fecha_inicio + timezone.timedelta(days=self.plan_actual.duracion_dias)
+        self.esta_activa = timezone.now() <= self.fecha_vencimiento
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Suscripción de {self.user.username} - {self.plan_actual.nombre}"
 
 class ConfiguracionEmpresa(models.Model):
     """
@@ -39,6 +80,30 @@ class ConfiguracionEmpresa(models.Model):
                 self.pk = existing.pk
         super().save(*args, **kwargs)
 
+class RegistroPago(models.Model):
+    ESTADOS = [
+        ("Pendiente", "Pendiente"),
+        ("Aprobado", "Aprobado"),
+        ("Rechazado", "Rechazado"),
+    ]
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pagos")
+    plan = models.ForeignKey(Plan, on_delete=models.PROTECT, related_name="pagos")
+    numero_comprobante = models.CharField("Número de comprobante", max_length=50, unique=True, null=True, blank=True)
+    # Identificador de referencia bancaria (p.ej. número de operación/transferencia)
+    comprobante_id = models.CharField("Referencia bancaria", max_length=100, unique=True, null=True, blank=True)
+    comprobante = models.ImageField(upload_to="comprobantes/")
+    monto_reportado = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=10, choices=ESTADOS, default="Pendiente")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # Datos del cliente
+    nombre_cliente = models.CharField(max_length=100)
+    email_cliente = models.EmailField(max_length=100)
+    telefono_cliente = models.CharField(max_length=20)
+    id_cliente = models.CharField("Cédula o RUC", max_length=20)
+
+    def __str__(self):
+        return f"Pago de {self.usuario.username} - {self.plan.nombre} - {self.estado}"
+
 class ControlAcceso(models.Model):
     nombre = models.CharField(max_length=100, default='Control de Acceso')
     class Meta:
@@ -53,3 +118,22 @@ class ControlAcceso(models.Model):
         verbose_name_plural = "Permisos de Acceso"
     def __str__(self):
         return self.nombre
+
+
+class WebhookLog(models.Model):
+    """Registro de intentos al webhook de pagos para auditoría y alertas."""
+    STATUS_CHOICES = [
+        ('success', 'Success'),
+        ('failed', 'Failed'),
+    ]
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.CharField(max_length=45, blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    detail = models.TextField(blank=True, null=True)
+    referencia = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"WebhookLog {self.status} - {self.referencia or 'no-ref'} @ {self.timestamp}"

@@ -1,3 +1,4 @@
+from possitema.services import verificar_limite_productos
 from django.shortcuts import render
 # inventario/views.py
 from django.http import JsonResponse
@@ -127,20 +128,19 @@ def productos_lista(request):
 
 @login_required
 def producto_crear(request):
-    """Permite crear un nuevo producto."""
+    """Permite crear un nuevo producto, respetando el límite del plan."""
+    if not verificar_limite_productos(request.user):
+        messages.error(request, "Has alcanzado el límite de productos de tu plan. Mejora tu suscripción para agregar más productos.")
+        return redirect('inventario:lista')
     if request.method == 'POST':
         form = ProductoForm(request.POST)
         if form.is_valid():
             producto = form.save(commit=False)
             producto.user = request.user
             producto.save()
-            # Redirigir a la lista de productos después de guardar
-            return redirect('inventario:lista') 
+            return redirect('inventario:lista')
     else:
-        # 🛑 Crear una instancia del formulario para enviarla a la plantilla
-        form = ProductoForm() 
-        
-    # 🛑 Asegúrate de pasar el formulario al contexto
+        form = ProductoForm()
     return render(request, 'inventario/crear_producto.html', {'form': form})
 
 @login_required

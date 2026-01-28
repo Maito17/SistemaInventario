@@ -14,9 +14,11 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from datetime import timedelta
+from possitema.models import Suscripcion, Plan
 
 # Simulación de almacenamiento de tokens (usar modelo en producción)
 password_reset_tokens = {}
+
 
 def registro_view(request):
     """Vista para el registro de nuevos usuarios"""
@@ -35,6 +37,22 @@ def registro_view(request):
             except Permission.DoesNotExist:
                 pass
                 
+            # Crear suscripción de prueba automática por 30 días
+            try:
+                plan_default = Plan.objects.filter(nombre='Bronce').first() or Plan.objects.first()
+                ahora = timezone.now()
+                if plan_default:
+                    Suscripcion.objects.create(
+                        user=user,
+                        plan_actual=plan_default,
+                        fecha_inicio=ahora,
+                        fecha_vencimiento=ahora + timedelta(days=30),
+                        esta_activa=True
+                    )
+            except Exception:
+                # No interrumpir el registro si hay un problema creando la suscripción
+                pass
+
             login(request, user)
             messages.success(request, f'¡Bienvenido {user.get_full_name()}! Tu cuenta ha sido creada.')
             return redirect('possitema:dashboard')
@@ -132,9 +150,13 @@ def lista_usuarios(request):
     return render(request, 'usuarios/lista_usuarios.html', context)
 
 
-@login_required
+
+
 def crear_usuario(request):
-    """Vista para crear un nuevo usuario"""
+    """Vista para crear un nuevo usuario, respetando el límite del plan."""
+    if not verificar_limite_usuarios(request.user):
+        messages.error(request, "Has alcanzado el límite de usuarios de tu plan. Mejora tu suscripción para agregar más usuarios.")
+        return redirect('usuarios:lista_usuarios')
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email', '')

@@ -6,7 +6,7 @@ from functools import wraps
 from django.http import Http404
 
 
-def permission_required_message(perm_name, redirect_url='ventas:dashboard_view'):
+def permission_required_message(perm_name, redirect_url='dashboard'):
     """
     Decorador personalizado para verificar un permiso de Django. 
     Muestra un mensaje de error si el usuario no tiene el permiso.
@@ -15,11 +15,12 @@ def permission_required_message(perm_name, redirect_url='ventas:dashboard_view')
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
-                # Si no está logueado, redirige a login
-                return redirect('login')
+                # Si no está logueado, redirige a login (namespaced)
+                return redirect('usuarios:login')
 
             # Verifica si el usuario tiene el permiso específico
-            if request.user.has_perm(perm_name):
+            # Permitir acceso a staff o superuser sin chequear permiso explícito
+            if request.user.is_superuser or request.user.is_staff or request.user.has_perm(perm_name):
                 return view_func(request, *args, **kwargs)
             else:
                 # Acceso denegado: Muestra el mensaje de error

@@ -1,3 +1,36 @@
+from possitema.models import Suscripcion
+from django.contrib.auth.models import User
+from inventario.models import Producto
+
+def verificar_limite_usuarios(user):
+    """
+    Retorna True si el usuario puede crear más usuarios según su plan.
+    """
+    try:
+        suscripcion = Suscripcion.objects.get(user=user)
+        limite = suscripcion.plan_actual.limite_usuarios
+        if limite is None:
+            return True  # Ilimitado
+        # Cuenta usuarios empleados de este owner
+        from usuarios.models import PerfilUsuario
+        empleados = PerfilUsuario.objects.filter(owner=user).count()
+        return empleados < limite
+    except Suscripcion.DoesNotExist:
+        return False
+
+def verificar_limite_productos(user):
+    """
+    Retorna True si el usuario puede crear más productos según su plan.
+    """
+    try:
+        suscripcion = Suscripcion.objects.get(user=user)
+        limite = suscripcion.plan_actual.limite_productos
+        if limite is None:
+            return True  # Ilimitado
+        productos = Producto.objects.filter(user=user).count()
+        return productos < limite
+    except Suscripcion.DoesNotExist:
+        return False
 from django.db import transaction
 from decimal import Decimal
 from django.shortcuts import get_object_or_404
@@ -71,7 +104,7 @@ def registrar_venta_completa(user, carrito_data, total_venta_calculado, cliente_
             try:
                 # Bloquear la fila del producto para asegurar consistencia de stock
                 # Asumo que el campo de stock en Producto es 'cantidad'
-                producto = Producto.objects.select_for_update().get(pk=producto_pk)
+                producto = Producto.objects.select_for_update().get(pk=producto_pk, user=user)
             except Producto.DoesNotExist:
                 raise Exception(f"Producto ID {producto_pk} no encontrado en el inventario.")
 

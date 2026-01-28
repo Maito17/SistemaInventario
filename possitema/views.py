@@ -1,3 +1,39 @@
+from .models import Plan
+
+from .models import Suscripcion
+from django.contrib import messages
+
+def planes_precios(request):
+    planes = Plan.objects.all().order_by('precio')
+    mostrar_planes = request.user.is_authenticated and not request.user.is_superuser
+    if request.method == 'POST' and mostrar_planes:
+        plan_id = request.POST.get('plan_id')
+        plan = Plan.objects.filter(id=plan_id).first()
+        if plan:
+            # Crear o actualizar la suscripción del usuario de forma segura
+            from .models import Suscripcion
+            suscripcion, created = Suscripcion.objects.get_or_create(user=request.user, defaults={
+                'plan_actual': plan,
+                'fecha_inicio': timezone.now(),
+                'fecha_vencimiento': timezone.now() + timezone.timedelta(days=plan.duracion_dias),
+                'esta_activa': True
+            })
+            if not created:
+                suscripcion.plan_actual = plan
+                suscripcion.fecha_inicio = timezone.now()
+                suscripcion.fecha_vencimiento = suscripcion.fecha_inicio + timezone.timedelta(days=plan.duracion_dias)
+                suscripcion.esta_activa = True
+                suscripcion.save()
+            messages.success(request, f"¡Plan '{plan.nombre}' seleccionado correctamente!")
+            return redirect('plan_vencido')
+        else:
+            messages.error(request, "No se pudo seleccionar el plan.")
+    return render(request, 'planes_precios.html', {'planes': planes, 'mostrar_planes': mostrar_planes})
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def plan_vencido(request):
+    return render(request, 'plan_vencido.html')
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -18,9 +54,178 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 import json
 import google.generativeai as genai
+import os
+
+# Cargar la clave de Gemini desde el entorno
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 from django.views.decorators.csrf import csrf_exempt
 # os y json ya los tienes importados según tu código previo
-from possitema.forms import AperturaCajaForm, ConfiguracionEmpresaForm
+from possitema.forms import AperturaCajaForm, ConfiguracionEmpresaForm, RegistroPagoForm
+
+from .models import RegistroPago
+from .models import WebhookLog
+import logging
+from django.core.mail import mail_admins
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
+# Vista para registro de pago SaaS
+from django.contrib.auth.decorators import login_required
+@login_required
+def solicitar_pago(request, plan_id=None):
+    user = request.user
+    plan = None
+    if plan_id:
+        from .models import Plan
+        plan = Plan.objects.filter(id=plan_id).first()
+    if request.method == 'POST':
+        form = RegistroPagoForm(request.POST, request.FILES)
+        if form.is_valid():
+            registro = form.save(commit=False)
+            registro.usuario = user
+            registro.estado = 'Pendiente'
+            # Rellenar datos del cliente desde el formulario (si vienen) o usar valores por defecto
+            registro.nombre_cliente = request.POST.get('nombre_cliente') or (getattr(user, 'get_full_name', lambda: user.username)() or user.username)
+            registro.email_cliente = request.POST.get('email_cliente') or (user.email or '')
+            registro.telefono_cliente = request.POST.get('telefono_cliente') or ''
+            registro.id_cliente = request.POST.get('id_cliente') or ''
+            registro.save()
+            messages.success(request, "Tu pago está siendo verificado por nuestra IA. En unos minutos se activará tu plan")
+            return redirect('confirmacion_pago')
+    else:
+        initial = {'plan': plan.id} if plan else {}
+        form = RegistroPagoForm(initial=initial)
+    # Datos bancarios de ejemplo (puedes personalizar)
+    datos_bancarios = [
+        {"banco": "Pichincha", "cuenta": "1234567890", "titular": "SaaS Company S.A."},
+        {"banco": "Guayaquil", "cuenta": "0987654321", "titular": "SaaS Company S.A."},
+    ]
+    return render(request, 'confirmacion_pago.html', {
+        'form': form,
+        'plan': plan,
+        'datos_bancarios': datos_bancarios,
+    })
+
+
+@csrf_exempt
+def webhook_activar_pago(request):
+    """Endpoint para recibir confirmaciones de pago desde n8n y activar suscripciones.
+
+    Espera JSON con: token_secreto, usuario_id, monto_real, plan_id, referencia_bancaria
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=400)
+
+    try:
+        payload = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    token = payload.get('token_secreto')
+    # Obtener token desde settings o variable de entorno
+    secret = getattr(settings, 'PAYMENT_WEBHOOK_TOKEN', os.getenv('PAYMENT_WEBHOOK_TOKEN'))
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+    if not secret or token != secret:
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Token inválido')
+        # Alertar admins si hay muchos intentos fallidos desde la misma IP
+        try:
+            one_hour_ago = timezone.now() - timedelta(hours=1)
+            fails_last_hour = WebhookLog.objects.filter(ip_address=ip, status='failed', timestamp__gte=one_hour_ago).count()
+            if fails_last_hour >= 5:
+                subject = f"Alerta: {fails_last_hour} intentos fallidos de webhook desde {ip}"
+                message = f"Se detectaron {fails_last_hour} intentos fallidos al webhook desde la IP {ip} en la última hora."
+                try:
+                    mail_admins(subject, message)
+                except Exception:
+                    logging.getLogger(__name__).warning('No se pudo enviar mail a admins para alertar sobre intentos fallidos')
+        except Exception:
+            pass
+        return JsonResponse({'error': 'Token inválido'}, status=400)
+
+    usuario_id = payload.get('usuario_id')
+    monto_real = payload.get('monto_real')
+    plan_id = payload.get('plan_id')
+    referencia = payload.get('referencia_bancaria')
+
+    if not all([usuario_id, monto_real, plan_id, referencia]):
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Faltan campos requeridos', referencia=referencia)
+        return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
+
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=usuario_id)
+    except User.DoesNotExist:
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Usuario no encontrado', referencia=referencia)
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=400)
+
+    # Verificar duplicados por referencia (comprobante_id o numero_comprobante)
+    if RegistroPago.objects.filter(comprobante_id=referencia).exists() or RegistroPago.objects.filter(numero_comprobante=referencia).exists():
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Pago ya procesado', referencia=referencia)
+        return JsonResponse({'error': 'Pago ya procesado'}, status=400)
+
+    try:
+        plan = Plan.objects.get(pk=plan_id)
+    except Plan.DoesNotExist:
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Plan no encontrado', referencia=referencia)
+        return JsonResponse({'error': 'Plan no encontrado'}, status=400)
+
+    ahora = timezone.now()
+    suscripcion, created = Suscripcion.objects.get_or_create(
+        user=user,
+        defaults={
+            'plan_actual': plan,
+            'fecha_inicio': ahora,
+            'fecha_vencimiento': ahora + timedelta(days=plan.duracion_dias),
+            'esta_activa': True,
+        }
+    )
+    if not created:
+        suscripcion.plan_actual = plan
+        suscripcion.fecha_inicio = ahora
+        suscripcion.fecha_vencimiento = ahora + timedelta(days=plan.duracion_dias)
+        suscripcion.esta_activa = True
+        suscripcion.save()
+
+    # Registrar pago aprobado
+    try:
+        registro = RegistroPago.objects.create(
+            usuario=user,
+            plan=plan,
+            numero_comprobante=referencia,
+            comprobante_id=referencia,
+            comprobante='',
+            monto_reportado=monto_real,
+            estado='Aprobado',
+            fecha_creacion=timezone.now(),
+            nombre_cliente=getattr(user, 'get_full_name', lambda: user.username)() or user.username,
+            email_cliente=user.email or '',
+            telefono_cliente='',
+            id_cliente=''
+        )
+    except Exception as e:
+        WebhookLog.objects.create(ip_address=ip, status='failed', detail=f'Error registro: {str(e)}', referencia=referencia)
+        return JsonResponse({'error': 'No se pudo registrar el pago', 'detail': str(e)}, status=400)
+
+    # Log success
+    WebhookLog.objects.create(ip_address=ip, status='success', detail='Pago aprobado y suscripción activada', referencia=referencia)
+
+    # Detectar intentos fallidos repetidos desde la misma IP en la última hora y alertar
+    try:
+        one_hour_ago = timezone.now() - timedelta(hours=1)
+        fails_last_hour = WebhookLog.objects.filter(ip_address=ip, status='failed', timestamp__gte=one_hour_ago).count()
+        if fails_last_hour >= 5:
+            subject = f"Alerta: {fails_last_hour} intentos fallidos de webhook desde {ip}"
+            message = f"Se detectaron {fails_last_hour} intentos fallidos al webhook de pagos desde la IP {ip} en la última hora. Última referencia: {referencia}\nRevisar logs para más detalles."
+            try:
+                mail_admins(subject, message)
+            except Exception:
+                logging.getLogger(__name__).warning('No se pudo enviar mail a admins para alertar sobre intentos fallidos')
+    except Exception:
+        pass
+
+    return JsonResponse({'message': 'Pago procesado y suscripción activada'}, status=200)
+
+    return JsonResponse({'message': 'Pago procesado y suscripción activada'}, status=200)
 from ventas.models import Venta, Caja, DetalleVenta
 from inventario.models import Producto
 from cliente.models import Cliente
@@ -310,6 +515,20 @@ class dashboardPOSView(View):
             'es_trabajador': es_trabajador,
         }
         
+        # Añadir info de suscripción para banner (si aplica)
+        try:
+            suscripcion_obj = Suscripcion.objects.filter(user=request.user).first()
+            if suscripcion_obj:
+                dias_restantes = (suscripcion_obj.fecha_vencimiento - timezone.now()).days
+                context['suscripcion'] = suscripcion_obj
+                context['dias_restantes'] = dias_restantes
+            else:
+                context['suscripcion'] = None
+                context['dias_restantes'] = None
+        except Exception:
+            context['suscripcion'] = None
+            context['dias_restantes'] = None
+
         return render(request, 'dashboard/dashboard.html', context)
 
 

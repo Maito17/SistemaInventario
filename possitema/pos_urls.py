@@ -20,4 +20,6 @@ urlpatterns = [
     path('procesar_venta/', views.procesar_venta_ajax, name='procesar_venta_ajax'),
     # Enviar comprobante por email
     path('enviar_email/<int:pk>/', ventas_views.enviar_venta_email, name='enviar_email'),
+    # Pago / Suscripciones (alias dentro del namespace 'pos' para resolver URLs desde templates dentro de /pos/)
+    path('pago/<int:plan_id>/', views.solicitar_pago, name='solicitar_pago'),
 ]

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container text-center mt-5">
+    <h1>¡Tu suscripción ha vencido!</h1>
+    <p>Para seguir usando el sistema, por favor renueva tu plan o elige uno nuevo.</p>
+    <a href="{% url 'planes_precios' %}" class="btn btn-primary">Ver planes y precios</a>
+</div>
+{% endblock %}

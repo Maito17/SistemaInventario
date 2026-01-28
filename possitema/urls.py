@@ -4,13 +4,19 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
-from .views import dashboardPOSView, configuracion_empresa_view, actualizar_ingresos_ajax
+from .views import dashboardPOSView, configuracion_empresa_view, actualizar_ingresos_ajax, plan_vencido, planes_precios, solicitar_pago, webhook_activar_pago
 
 # Nota: El nombre del proyecto principal puede ser diferente.
 
 urlpatterns = [
     # 0. Ruta raíz - redirige al dashboard
     path('', dashboardPOSView.as_view(), name='dashboard'),
+    # Página de plan vencido
+    path('plan-vencido/', plan_vencido, name='plan_vencido'),
+    # Página de planes y precios
+    path('planes-precios/', planes_precios, name='planes_precios'),
+    # Formulario de pago SaaS
+    path('pago/<int:plan_id>/', solicitar_pago, name='solicitar_pago'),
     
     # 1. Configuración de Empresa (Segura, sin admin)
     path('configuracion/', configuracion_empresa_view, name='configuracion_empresa'),
@@ -38,6 +44,8 @@ urlpatterns = [
     path('roles/', RedirectView.as_view(pattern_name='usuarios:lista_roles')),
     # Endpoint de IA de ventas
     path('api/ia-ventas/', __import__('possitema.ia_ventas').ia_ventas.ia_ventas, name='ia_ventas'),
+    # Webhook externo para confirmar pagos (n8n)
+    path('api/v1/pagos/confirmar-ia/', webhook_activar_pago, name='confirmar_pago_ia'),
 ]
 
 # Configuración de archivos estáticos y media (si es aplicable)

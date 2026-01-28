@@ -1,0 +1,87 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Confirmación de Pago</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4" role="alert">
+                        <h5 class="alert-heading mb-2">Datos para Transferencia Bancaria</h5>
+                        <ul class="mb-2 ps-3">
+                            <li><strong>Banco:</strong> Banco Pichincha</li>
+                            <li><strong>Tipo de cuenta:</strong> Corriente</li>
+                            <li><strong>Número de cuenta:</strong> 1234567890</li>
+                            <li><strong>Beneficiario:</strong> SaaS Company S.A.</li>
+                            <li><strong>Identificación:</strong> 0999999999001</li>
+                            <li><strong>Correo de notificación:</strong> soporte@saascompany.com</li>
+                        </ul>
+                        <hr>
+                        <p class="mb-0">Por favor, realiza la transferencia por el monto exacto del plan seleccionado. Una vez realizada, sube la captura de pantalla o foto del comprobante aquí abajo para que nuestra IA verifique tu pago inmediatamente.</p>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" class="mt-4" id="pagoForm">
+                        <div class="mb-3">
+                            <label for="nombre_cliente" class="form-label">Nombre completo</label>
+                            <input type="text" class="form-control" id="nombre_cliente" name="nombre_cliente" required maxlength="100" placeholder="Tu nombre completo">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email_cliente" class="form-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="email_cliente" name="email_cliente" required maxlength="100" placeholder="tucorreo@email.com">
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefono_cliente" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefono_cliente" name="telefono_cliente" required maxlength="20" placeholder="0999999999">
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_cliente" class="form-label">Cédula o RUC</label>
+                            <input type="text" class="form-control" id="id_cliente" name="id_cliente" required maxlength="20" placeholder="Cédula o RUC">
+                        </div>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.plan.label_tag }}
+                            {{ form.plan }}
+                            {% if form.plan.errors %}<div class="text-danger">{{ form.plan.errors }}</div>{% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.numero_comprobante.label_tag }}
+                            {{ form.numero_comprobante }}
+                            {% if form.numero_comprobante.errors %}<div class="text-danger">{{ form.numero_comprobante.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">Este número debe coincidir con el comprobante bancario y no puede repetirse.</small>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.monto_reportado.label_tag }}
+                            {{ form.monto_reportado }}
+                            {% if form.monto_reportado.errors %}<div class="text-danger">{{ form.monto_reportado.errors }}</div>{% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.comprobante.label_tag }}
+                            <input type="file" name="comprobante" accept="image/jpeg,image/png" class="form-control" required id="id_comprobante">
+                            {% if form.comprobante.errors %}<div class="text-danger">{{ form.comprobante.errors }}</div>{% endif %}
+                            <small class="form-text text-muted">Solo se aceptan imágenes JPG o PNG.</small>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Enviar comprobante</button>
+                    <script>
+                    // Validación del lado del cliente para comprobante (solo JPG, PNG)
+                    document.getElementById('pagoForm').addEventListener('submit', function(e) {
+                        var fileInput = document.getElementById('id_comprobante');
+                        if (fileInput.files.length > 0) {
+                            var file = fileInput.files[0];
+                            var allowedTypes = ['image/jpeg', 'image/png'];
+                            if (!allowedTypes.includes(file.type)) {
+                                alert('Solo se permiten imágenes JPG o PNG.');
+                                e.preventDefault();
+                            }
+                        }
+                    });
+                    </script>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

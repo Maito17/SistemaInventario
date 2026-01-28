@@ -35,4 +35,5 @@ gunicorn
 whitenoise
 python-dotenv
 mysqlclient
-google-generativeai==0.8.6
+google-genai
+openai==0.28

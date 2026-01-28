@@ -1,5 +1,27 @@
-# possitema/forms.py
 from django import forms
+from .models import RegistroPago, Plan
+
+# Formulario para registro de pago de SaaS
+class RegistroPagoForm(forms.ModelForm):
+    class Meta:
+        model = RegistroPago
+        fields = ['plan', 'numero_comprobante', 'comprobante', 'monto_reportado', 'nombre_cliente', 'email_cliente', 'telefono_cliente', 'id_cliente']
+        widgets = {
+            'plan': forms.Select(attrs={'class': 'form-control'}),
+            'numero_comprobante': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '50', 'placeholder': 'Ej: 1234567890', 'required': True}),
+            'comprobante': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'monto_reportado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '100', 'placeholder': 'Tu nombre completo'}),
+            'email_cliente': forms.EmailInput(attrs={'class': 'form-control', 'maxlength': '100', 'placeholder': 'tucorreo@email.com'}),
+            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '20', 'placeholder': '0999999999'}),
+            'id_cliente': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '20', 'placeholder': 'Cédula o RUC'}),
+        }
+        labels = {
+            'plan': 'Selecciona tu plan',
+            'numero_comprobante': 'Número de comprobante',
+            'comprobante': 'Comprobante de transferencia',
+            'monto_reportado': 'Monto transferido ($)',
+        }
 from inventario.models import Categoria
 from ventas.models import Caja
 from .models import ConfiguracionEmpresa
