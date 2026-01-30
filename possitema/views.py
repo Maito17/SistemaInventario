@@ -226,6 +226,62 @@ def webhook_activar_pago(request):
     return JsonResponse({'message': 'Pago procesado y suscripción activada'}, status=200)
 
     return JsonResponse({'message': 'Pago procesado y suscripción activada'}, status=200)
+@csrf_exempt
+def registrar_pago_ia(request):
+    """Endpoint simple para registro de pago desde n8n u otros webhooks.
+
+    Espera JSON con: `usuario_id`, `plan_id`, `monto` y `referencia`.
+    Crea un `RegistroPago` con estado `Pendiente`.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=400)
+
+    try:
+        payload = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    usuario_id = payload.get('usuario_id')
+    plan_id = payload.get('plan_id')
+    monto = payload.get('monto')
+    referencia = payload.get('referencia')
+
+    if not all([usuario_id, plan_id, monto, referencia]):
+        return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
+
+    User = get_user_model()
+    try:
+        user = User.objects.get(pk=usuario_id)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=400)
+
+    try:
+        plan = Plan.objects.get(pk=plan_id)
+    except Plan.DoesNotExist:
+        return JsonResponse({'error': 'Plan no encontrado'}, status=400)
+
+    # Evitar duplicados por referencia
+    if RegistroPago.objects.filter(comprobante_id=referencia).exists() or RegistroPago.objects.filter(numero_comprobante=referencia).exists():
+        return JsonResponse({'error': 'Pago ya procesado'}, status=400)
+
+    try:
+        registro = RegistroPago.objects.create(
+            usuario=user,
+            plan=plan,
+            numero_comprobante=referencia,
+            comprobante_id=referencia,
+            comprobante='',
+            monto_reportado=monto,
+            estado='Pendiente',
+            nombre_cliente=getattr(user, 'get_full_name', lambda: user.username)() or user.username,
+            email_cliente=user.email or '',
+            telefono_cliente='',
+            id_cliente=''
+        )
+    except Exception as e:
+        return JsonResponse({'error': 'No se pudo registrar el pago', 'detail': str(e)}, status=400)
+
+    return JsonResponse({'status': 'success', 'id': registro.id}, status=201)
 from ventas.models import Venta, Caja, DetalleVenta
 from inventario.models import Producto
 from cliente.models import Cliente
