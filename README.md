@@ -1,3 +1,60 @@
+# Sistema de Ventas (pos)
+
+Proyecto Django para gestión de punto de venta. Este repositorio está preparado para desplegar en Railway.
+
+Rápido inicio local
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Edita .env y añade SECRET_KEY y DATABASE_URL si usas una DB remota
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Variables de entorno (añadir en Railway -> Settings -> Variables):
+
+- `SECRET_KEY` (requerido)
+- `DEBUG=false`
+- `DATABASE_URL` (Railway pone esto automáticamente si añades un servicio DB)
+- `EMAIL_HOST_USER` y `EMAIL_HOST_PASSWORD` (si usas email real)
+- `GEMINI_API_KEY` (opcional)
+
+Deploy en Railway (pasos básicos)
+
+1. Subir este repo a GitHub (ya está conectado).
+2. En Railway: New Project → Deploy from GitHub → selecciona este repo.
+3. En Settings del proyecto en Railway, añade variables de entorno listadas arriba.
+4. En Build/Release commands (opcional) añade:
+
+Build:
+```bash
+pip install -r requirements.txt
+```
+
+Release (ejecutar migraciones y collectstatic):
+```bash
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+```
+
+Railway usará el `Procfile` para arrancar la aplicación:
+
+```
+web: gunicorn possitema.wsgi --bind 0.0.0.0:$PORT
+```
+
+Notas y recomendaciones
+
+- Asegúrate de fijar `DEBUG=false` en producción.
+- Usa backups automáticos de la base de datos en Railway.
+- Considera usar almacenamiento externo para `MEDIA` (S3 u otro).
+- Añade protección de branch (`main`) y despliegues controlados por PRs.
+
+Si quieres, aplico los pasos finales (migrations automáticas en release, añadir GitHub Action para tests, o configurar almacenamiento para `MEDIA`).
 # SistemaPOS — Webhook de Confirmación de Pagos
 
 Se añadió un endpoint para recibir confirmaciones de pago desde n8n y activar suscripciones automáticamente.
