@@ -9,18 +9,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import pymysql
-import MySQLdb.constants.ER as er
 
-if not hasattr(er, 'CONSTRAINT_FAILED'):
-    er.CONSTRAINT_FAILED = 1062 
-
-pymysql.install_as_MySQLdb()
 
 from pathlib import Path
 import os
 import sys
-from google import genai
+import google.generativeai as genai
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
