@@ -32,6 +32,6 @@ typing_extensions==4.15.0
 tzdata==2025.3
 whitenoise
 mysqlclient
-google-genai
+google-generativeai
 openai>=0.28.1
 pymysql
