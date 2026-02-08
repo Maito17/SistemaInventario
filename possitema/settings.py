@@ -16,6 +16,11 @@ import sys
 import google.generativeai as genai
 
 import pymysql
+import MySQLdb.constants.ER as er
+
+if not hasattr(er, 'CONSTRAINT_FAILED'):
+    er.CONSTRAINT_FAILED = 1062 
+
 pymysql.install_as_MySQLdb()
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
