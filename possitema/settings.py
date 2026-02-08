@@ -20,7 +20,7 @@ pymysql.install_as_MySQLdb()
 from pathlib import Path
 import os
 import sys
-import google.generativeai as genai
+from google import genai
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
