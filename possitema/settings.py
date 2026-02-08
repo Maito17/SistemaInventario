@@ -107,23 +107,17 @@ USE_MYSQL = os.getenv('DB_ENGINE', '').startswith('django.db.backends.mysql')
 # Configuración única para MySQL
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME', 'sistemados_db'),
         'USER': os.getenv('DB_USER', 'root'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'root'),
         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DB_PORT', '3306'), # Quitamos el int() de aquí para evitar errores si viene vacío
+        'PORT': int(os.getenv('DB_PORT', '3306')),
         'OPTIONS': {
             'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
-
-# Validación de puerto para Railway
-if DATABASES['default']['PORT'] == '':
-    DATABASES['default']['PORT'] = '3306'
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
