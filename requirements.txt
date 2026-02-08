@@ -34,3 +34,4 @@ whitenoise
 mysqlclient
 google-generativeai
 openai>=0.28.1
+pymysql
