@@ -15,8 +15,8 @@ import os
 import sys
 import google.generativeai as genai
 
-#import pymysql
-#pymysql.install_as_MySQLdb()
+import pymysql
+pymysql.install_as_MySQLdb()
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Intentar cargar variables de entorno desde .env (opcional)
