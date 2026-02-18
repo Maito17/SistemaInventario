@@ -130,18 +130,27 @@ def lista_usuarios(request):
     """Vista para listar todos los usuarios"""
     query = request.GET.get('q', '')
     
-    if query:
-        # Filtrar por texto Y propiedad (perfilusuario__owner = request.user)
-        # O si es superuser, permitir ver todo (opcional, pero mejor restringir para que el dueño vea lo suyo)
-        usuarios = User.objects.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query) |
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query)
-        ).filter(perfilusuario__owner=request.user).order_by('username')
+    if request.user.is_superuser:
+        # Superusuario ve todos los usuarios normales (no staff, no superuser)
+        if query:
+            usuarios = User.objects.filter(
+                Q(username__icontains=query) |
+                Q(email__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query)
+            ).filter(is_superuser=False, is_staff=False).order_by('username')
+        else:
+            usuarios = User.objects.filter(is_superuser=False, is_staff=False).order_by('username')
     else:
-        # Solo mis empleados
-        usuarios = User.objects.filter(perfilusuario__owner=request.user).order_by('username')
+        if query:
+            usuarios = User.objects.filter(
+                Q(username__icontains=query) |
+                Q(email__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query)
+            ).filter(perfilusuario__owner=request.user).order_by('username')
+        else:
+            usuarios = User.objects.filter(perfilusuario__owner=request.user).order_by('username')
     
     context = {
         'usuarios': usuarios,
@@ -507,11 +516,15 @@ def lista_personal(request):
     
     # Todos los usuarios autenticados pueden ver la tabla de personal
     
-    # Mostrar solo los usuarios creados por el administrador actual (owner)
     from django.db.models import Q
-    usuarios = User.objects.filter(
-        Q(perfilusuario__owner=request.user) | Q(pk=request.user.pk)
-    ).exclude(username='admin').order_by('first_name')
+    if request.user.is_superuser:
+        # Superusuario ve todos los usuarios normales (no staff, no superuser)
+        usuarios = User.objects.filter(is_superuser=False, is_staff=False).exclude(username='admin').order_by('first_name')
+    else:
+        # Usuario normal ve solo los que le corresponden
+        usuarios = User.objects.filter(
+            Q(perfilusuario__owner=request.user) | Q(pk=request.user.pk)
+        ).exclude(username='admin').order_by('first_name')
     
     # Obtener la fecha de hoy en la zona horaria local
     ahora = timezone.now()

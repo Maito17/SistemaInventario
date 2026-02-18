@@ -35,7 +35,7 @@
           <a href="{% url 'dashboard' %}" class="nav-link">Home</a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-          <a href="{% url 'planes_precios' %}" class="nav-link">Planes</a>
+          <!-- Enlace a Planes eliminado -->
         </li>
       </ul>
 
@@ -354,6 +354,7 @@
 
 
             
+            {% if request.user.is_superuser or request.user.is_staff %}
             <li class="nav-header">ADMINISTRACIÓN</li>
             <li class="nav-item">
               <a href="#" class="nav-link">
@@ -378,6 +379,7 @@
                       <i class="fas fa-angle-left right"></i>
                     </p>
                   </a>
+            {% endif %}
                   <ul class="nav nav-treeview">
                     <li class="nav-item">
                       <a href="{% url 'usuarios:lista_personal' %}" class="nav-link">
@@ -393,6 +395,7 @@
                     </li>
                   </ul>
                 </li>
+                {% if request.user.is_superuser or request.user.is_staff %}
                 <li class="nav-item">
                   <a href="{% url 'usuarios:lista_roles' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'lista_roles' %}active{% endif %}">
@@ -400,6 +403,7 @@
                     <p>Roles y Permisos</p>
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
             

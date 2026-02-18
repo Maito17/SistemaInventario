@@ -3,32 +3,7 @@ from .models import Plan
 from .models import Suscripcion
 from django.contrib import messages
 
-def planes_precios(request):
-    planes = Plan.objects.all().order_by('precio')
-    mostrar_planes = request.user.is_authenticated and not request.user.is_superuser
-    if request.method == 'POST' and mostrar_planes:
-        plan_id = request.POST.get('plan_id')
-        plan = Plan.objects.filter(id=plan_id).first()
-        if plan:
-            # Crear o actualizar la suscripción del usuario de forma segura
-            from .models import Suscripcion
-            suscripcion, created = Suscripcion.objects.get_or_create(user=request.user, defaults={
-                'plan_actual': plan,
-                'fecha_inicio': timezone.now(),
-                'fecha_vencimiento': timezone.now() + timezone.timedelta(days=plan.duracion_dias),
-                'esta_activa': True
-            })
-            if not created:
-                suscripcion.plan_actual = plan
-                suscripcion.fecha_inicio = timezone.now()
-                suscripcion.fecha_vencimiento = suscripcion.fecha_inicio + timezone.timedelta(days=plan.duracion_dias)
-                suscripcion.esta_activa = True
-                suscripcion.save()
-            messages.success(request, f"¡Plan '{plan.nombre}' seleccionado correctamente!")
-            return redirect('plan_vencido')
-        else:
-            messages.error(request, "No se pudo seleccionar el plan.")
-    return render(request, 'planes_precios.html', {'planes': planes, 'mostrar_planes': mostrar_planes})
+    # Vista planes_precios eliminada
 from django.contrib.auth.decorators import login_required
 
 @login_required

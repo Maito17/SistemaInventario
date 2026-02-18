@@ -4,7 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
-from .views import dashboardPOSView, configuracion_empresa_view, actualizar_ingresos_ajax, plan_vencido, planes_precios, solicitar_pago, webhook_activar_pago
+from .views import dashboardPOSView, configuracion_empresa_view, actualizar_ingresos_ajax, plan_vencido, solicitar_pago, webhook_activar_pago
 
 # Nota: El nombre del proyecto principal puede ser diferente.
 
@@ -14,7 +14,7 @@ urlpatterns = [
     # Página de plan vencido
     path('plan-vencido/', plan_vencido, name='plan_vencido'),
     # Página de planes y precios
-    path('planes-precios/', planes_precios, name='planes_precios'),
+    # Ruta planes-precios eliminada
     # Formulario de pago SaaS
     path('pago/<int:plan_id>/', solicitar_pago, name='solicitar_pago'),
     

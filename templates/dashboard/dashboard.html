@@ -107,24 +107,7 @@
     </div>
 </div>
 
-<!-- BANNER DE SUSCRIPCIÓN / TRIAL -->
-{% if suscripcion %}
-<div class="row mb-3">
-    <div class="col-12">
-        {% if dias_restantes is not None and dias_restantes >= 0 %}
-        <div class="alert alert-info">
-            <strong>Tu suscripción expira en {{ dias_restantes }} días.</strong>
-            <a href="{% url 'solicitar_pago' suscripcion.plan_actual.id %}" class="btn btn-sm btn-primary ml-3">Pagar / Renovar ahora</a>
-        </div>
-        {% else %}
-        <div class="alert alert-warning">
-            <strong>Tu suscripción ha vencido.</strong>
-            <a href="{% url 'planes_precios' %}" class="btn btn-sm btn-danger ml-3">Ver planes y pagar</a>
-        </div>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
+<!-- BANNER DE SUSCRIPCIÓN / TRIAL ELIMINADO -->
 
 <!-- Estadísticas Principales -->
 <div class="row">

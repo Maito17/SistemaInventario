@@ -96,7 +96,7 @@ def buscar_productos_api(request):
 @login_required
 def productos_lista(request):
     """Muestra la lista de productos."""
-    productos = Producto.objects.filter(user=request.user)
+    productos = Producto.objects.all()
     
     # 2. Calcular métricas para los cuadros (Info Boxes)
     total_productos = productos.count()
@@ -112,7 +112,7 @@ def productos_lista(request):
     productos_bajo_stock = productos.filter(cantidad__lte=BAJO_STOCK_UMBRAL).count()
     
     # Contar productos próximos a vencer
-    productos_proximos_a_vencer = get_productos_por_vencer(request.user).count()
+    productos_proximos_a_vencer = get_productos_por_vencer(None).count()  # Ajusta la función para no filtrar por usuario
     
     context = {
         'productos': productos,
@@ -136,7 +136,7 @@ def producto_crear(request):
         form = ProductoForm(request.POST)
         if form.is_valid():
             producto = form.save(commit=False)
-            producto.user = request.user
+            # producto.user = request.user  # No asignar usuario
             producto.save()
             return redirect('inventario:lista')
     else:
@@ -150,7 +150,7 @@ def proveedor_crear(request):
         form = ProveedorForm(request.POST) # 🛑 Usar ProveedorForm
         if form.is_valid():
             proveedor = form.save(commit=False)
-            proveedor.user = request.user
+            # proveedor.user = request.user  # No asignar usuario
             proveedor.save()
             # Redirigir a la lista de proveedores después de guardar
             return redirect('inventario:proveedores_lista') 
@@ -167,7 +167,7 @@ def categoria_crear(request):
         form = CategoriaForm(request.POST) # 🛑 Usar CategoriaForm
         if form.is_valid():
             categoria = form.save(commit=False)
-            categoria.user = request.user
+            # categoria.user = request.user  # No asignar usuario
             categoria.save()
             # Redirigir a la lista de categorías después de guardar
             return redirect('inventario:categorias_lista') 
@@ -180,7 +180,7 @@ def categoria_crear(request):
 def proveedores_lista(request): # 🛑 Asegúrate de que el nombre coincida EXACTAMENTE
     """Muestra la lista de proveedores."""
     # Aquí es donde obtenemos todos los objetos del modelo Proveedor
-    proveedores = Proveedor.objects.filter(user=request.user) 
+    proveedores = Proveedor.objects.all()
     
     # Renderizamos la plantilla que creamos antes
     return render(request, 'inventario/lista_proveedores.html', {'proveedores': proveedores})
@@ -188,7 +188,7 @@ def proveedores_lista(request): # 🛑 Asegúrate de que el nombre coincida EXAC
 @login_required
 def categorias_lista(request): # 🛑 Asegúrate de que el nombre coincida EXACTAMENTE
     """Muestra la lista de categorías."""
-    categorias = Categoria.objects.filter(user=request.user)
+    categorias = Categoria.objects.all()
     return render(request, 'inventario/lista_categorias.html', {'categorias': categorias})
 
 
@@ -196,7 +196,7 @@ def categorias_lista(request): # 🛑 Asegúrate de que el nombre coincida EXACT
 @login_required
 def editar_producto(request, pk):
     """Permite editar un producto existente."""
-    producto = get_object_or_404(Producto, pk=pk, user=request.user)
+    producto = get_object_or_404(Producto, pk=pk)
     if request.method == 'POST':
         form = ProductoForm(request.POST, instance=producto)
         if form.is_valid():
@@ -209,7 +209,7 @@ def editar_producto(request, pk):
 @login_required
 def eliminar_producto(request, pk):
     """Permite eliminar un producto."""
-    producto = get_object_or_404(Producto, pk=pk, user=request.user)
+    producto = get_object_or_404(Producto, pk=pk)
     if request.method == 'POST':
         producto.delete()
         return redirect('inventario:lista')
