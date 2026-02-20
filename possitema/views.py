@@ -1,6 +1,4 @@
 from .models import Plan
-
-from .models import Suscripcion
 from django.contrib import messages
 
     # Vista planes_precios eliminada
@@ -38,7 +36,6 @@ from django.views.decorators.csrf import csrf_exempt
 from possitema.forms import AperturaCajaForm, ConfiguracionEmpresaForm, RegistroPagoForm
 
 from .models import RegistroPago
-from .models import WebhookLog
 import logging
 from django.core.mail import mail_admins
 from django.contrib.auth import get_user_model
@@ -101,11 +98,11 @@ def webhook_activar_pago(request):
     secret = getattr(settings, 'PAYMENT_WEBHOOK_TOKEN', os.getenv('PAYMENT_WEBHOOK_TOKEN'))
     ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
     if not secret or token != secret:
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Token inválido')
+        # WebhookLog eliminado: log de token inválido
         # Alertar admins si hay muchos intentos fallidos desde la misma IP
         try:
             one_hour_ago = timezone.now() - timedelta(hours=1)
-            fails_last_hour = WebhookLog.objects.filter(ip_address=ip, status='failed', timestamp__gte=one_hour_ago).count()
+            # WebhookLog eliminado: conteo de fallos
             if fails_last_hour >= 5:
                 subject = f"Alerta: {fails_last_hour} intentos fallidos de webhook desde {ip}"
                 message = f"Se detectaron {fails_last_hour} intentos fallidos al webhook desde la IP {ip} en la última hora."
@@ -123,43 +120,22 @@ def webhook_activar_pago(request):
     referencia = payload.get('referencia_bancaria')
 
     if not all([usuario_id, monto_real, plan_id, referencia]):
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Faltan campos requeridos', referencia=referencia)
+        # WebhookLog eliminado: log de campos requeridos
         return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
 
     User = get_user_model()
     try:
         user = User.objects.get(pk=usuario_id)
     except User.DoesNotExist:
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Usuario no encontrado', referencia=referencia)
+        # WebhookLog eliminado: log de usuario no encontrado
         return JsonResponse({'error': 'Usuario no encontrado'}, status=400)
 
     # Verificar duplicados por referencia (comprobante_id o numero_comprobante)
     if RegistroPago.objects.filter(comprobante_id=referencia).exists() or RegistroPago.objects.filter(numero_comprobante=referencia).exists():
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Pago ya procesado', referencia=referencia)
+        # WebhookLog eliminado: log de pago ya procesado
         return JsonResponse({'error': 'Pago ya procesado'}, status=400)
 
-    try:
-        plan = Plan.objects.get(pk=plan_id)
-    except Plan.DoesNotExist:
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail='Plan no encontrado', referencia=referencia)
-        return JsonResponse({'error': 'Plan no encontrado'}, status=400)
-
-    ahora = timezone.now()
-    suscripcion, created = Suscripcion.objects.get_or_create(
-        user=user,
-        defaults={
-            'plan_actual': plan,
-            'fecha_inicio': ahora,
-            'fecha_vencimiento': ahora + timedelta(days=plan.duracion_dias),
-            'esta_activa': True,
-        }
-    )
-    if not created:
-        suscripcion.plan_actual = plan
-        suscripcion.fecha_inicio = ahora
-        suscripcion.fecha_vencimiento = ahora + timedelta(days=plan.duracion_dias)
-        suscripcion.esta_activa = True
-        suscripcion.save()
+    # Eliminada lógica de suscripciones y activación de planes
 
     # Registrar pago aprobado
     try:
@@ -178,16 +154,16 @@ def webhook_activar_pago(request):
             id_cliente=''
         )
     except Exception as e:
-        WebhookLog.objects.create(ip_address=ip, status='failed', detail=f'Error registro: {str(e)}', referencia=referencia)
+        # WebhookLog eliminado: log de error registro
         return JsonResponse({'error': 'No se pudo registrar el pago', 'detail': str(e)}, status=400)
 
     # Log success
-    WebhookLog.objects.create(ip_address=ip, status='success', detail='Pago aprobado y suscripción activada', referencia=referencia)
+    # WebhookLog eliminado: log de éxito
 
     # Detectar intentos fallidos repetidos desde la misma IP en la última hora y alertar
     try:
         one_hour_ago = timezone.now() - timedelta(hours=1)
-        fails_last_hour = WebhookLog.objects.filter(ip_address=ip, status='failed', timestamp__gte=one_hour_ago).count()
+        # WebhookLog eliminado: conteo de fallos
         if fails_last_hour >= 5:
             subject = f"Alerta: {fails_last_hour} intentos fallidos de webhook desde {ip}"
             message = f"Se detectaron {fails_last_hour} intentos fallidos al webhook de pagos desde la IP {ip} en la última hora. Última referencia: {referencia}\nRevisar logs para más detalles."

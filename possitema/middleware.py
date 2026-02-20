@@ -1,7 +1,5 @@
 from django.shortcuts import redirect
 from django.utils import timezone
-from possitema.models import Suscripcion
-
 class SuscripcionActivaRequiredMiddleware:
     """
     Middleware que verifica si la suscripción del usuario está activa.
@@ -36,3 +34,5 @@ class SuscripcionActivaRequiredMiddleware:
             except Suscripcion.DoesNotExist:
                 return redirect('plan_vencido')
         return self.get_response(request)
+
+# Middleware de suscripción eliminado

@@ -129,9 +129,7 @@ def productos_lista(request):
 @login_required
 def producto_crear(request):
     """Permite crear un nuevo producto, respetando el límite del plan."""
-    if not verificar_limite_productos(request.user):
-        messages.error(request, "Has alcanzado el límite de productos de tu plan. Mejora tu suscripción para agregar más productos.")
-        return redirect('inventario:lista')
+    # Eliminada la verificación de límite de productos por plan
     if request.method == 'POST':
         form = ProductoForm(request.POST)
         if form.is_valid():

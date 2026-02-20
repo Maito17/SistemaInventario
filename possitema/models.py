@@ -103,37 +103,3 @@ class RegistroPago(models.Model):
 
     def __str__(self):
         return f"Pago de {self.usuario.username} - {self.plan.nombre} - {self.estado}"
-
-class ControlAcceso(models.Model):
-    nombre = models.CharField(max_length=100, default='Control de Acceso')
-    class Meta:
-        managed = False
-        permissions = [
-            ("can_view_dashboard_admin", "Puede ver el panel de administración"),
-            ("can_view_lista_ventas", "Puede ver la lista de ventas"),
-            ("can_access_inventario", "Puede acceder al inventario"),
-            ("can_access_pos", "Puede acceder al punto de venta"),
-        ]
-        verbose_name = "Permiso de Acceso"
-        verbose_name_plural = "Permisos de Acceso"
-    def __str__(self):
-        return self.nombre
-
-
-class WebhookLog(models.Model):
-    """Registro de intentos al webhook de pagos para auditoría y alertas."""
-    STATUS_CHOICES = [
-        ('success', 'Success'),
-        ('failed', 'Failed'),
-    ]
-    timestamp = models.DateTimeField(auto_now_add=True)
-    ip_address = models.CharField(max_length=45, blank=True, null=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
-    detail = models.TextField(blank=True, null=True)
-    referencia = models.CharField(max_length=100, blank=True, null=True)
-
-    class Meta:
-        ordering = ['-timestamp']
-
-    def __str__(self):
-        return f"WebhookLog {self.status} - {self.referencia or 'no-ref'} @ {self.timestamp}"
