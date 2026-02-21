@@ -383,19 +383,17 @@ APPEND_SLASH = True
 
 CSRF_TRUSTED_ORIGINS = ['https://poreyctopersonal-production.up.railway.app']
 
-# Añade el dominio de Railway que ya tienes y permite subdominios
 ALLOWED_HOSTS = [
-    'poreyctopersonal-production.up.railway.app', 
+    'sistemaventaspos-production.up.railway.app', # El de tu captura
+    'poreyctopersonal-production.up.railway.app', # El que pusiste en el texto
     '.up.railway.app', 
     'localhost', 
     '127.0.0.1'
 ]
 
-# Actualiza también los orígenes de confianza para formularios
 CSRF_TRUSTED_ORIGINS = [
-    'https://poreyctopersonal-production.up.railway.app',
-    'http://localhost',
-    'http://127.0.0.1',
+    'https://sistemaventaspos-production.up.railway.app',
+    'https://poreyctopersonal-production.up.railway.app'
 ]
 
 # Configuración de Gemini
