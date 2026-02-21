@@ -397,4 +397,3 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Configuración de Gemini
-
