@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark">Gestión de Roles y Permisos</h1> 
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content_header %}
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+        
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Roles del Sistema (Grupos)</h3>
+                <div class="card-tools">
+                    <a href="/admin/auth/group/add/" target="_blank" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Crear Nuevo Rol
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width: 10px">#</th>
+                            <th>Nombre del Rol</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rol in roles %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ rol.name }}</td>
+                            <td>
+                                <a href="/admin/auth/group/{{ rol.pk }}/change/" target="_blank" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit"></i> Editar Permisos
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3">No hay roles definidos en el sistema.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

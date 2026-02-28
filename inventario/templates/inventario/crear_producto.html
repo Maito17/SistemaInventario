@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Producto{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Crear Nuevo Producto</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card card-primary">
+        <div class="card-header">
+            <h3 class="card-title">Datos del Producto</h3>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="card-header bg-dark p-2 mb-3">
+                    <h5 class="card-title m-0">Información General</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.id_producto.label_tag }}
+                    {{ form.id_producto }}
+                </div>
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                </div>
+                <div class="form-group">
+                    {{ form.descripcion.label_tag }}
+                    {{ form.descripcion }}
+                </div>
+                
+                <div class="card-header bg-dark p-2 mb-3 mt-4">
+                    <h5 class="card-title m-0">Detalles de Inventario</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.cantidad.label_tag }}
+                    {{ form.cantidad }}
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.precio_costo.label_tag }}
+                            {{ form.precio_costo }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.precio_venta.label_tag }}
+                            {{ form.precio_venta }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-header bg-dark p-2 mb-3 mt-4">
+                    <h5 class="card-title m-0">Relaciones</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.categoria.label_tag }}
+                    {{ form.categoria }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.tarifa_iva.label_tag }}
+                            {{ form.tarifa_iva }}
+                            <small class="form-text text-muted">Selecciona la tarifa de impuesto aplicable.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                            <small class="form-text text-muted">Define el estado del producto.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-header bg-dark p-2 mb-3 mt-4">
+                    <h5 class="card-title m-0">Opcionales</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.fecha_caducidad.label_tag }}
+                    {{ form.fecha_caducidad }}
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle"></i> Solo si el producto tiene fecha de vencimiento (alimentos, medicinas, etc.)
+                    </small>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        Por favor, corrige los errores del formulario.
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                <a href="{% url 'inventario:lista' %}" class="btn btn-default float-right">Cancelar</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

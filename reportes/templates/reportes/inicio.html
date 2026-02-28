@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Centro de Reportes{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-chart-bar"></i> Centro de Reportes
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Reportes</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Reportes de Operaciones -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-folder-open"></i> Reportes de Operaciones
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Reporte de Asistencia -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:asistencia' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock fa-3x text-primary mb-2"></i>
+                                <h5 class="card-title">Asistencia</h5>
+                                <p class="card-text small">Control de entrada y salida del personal</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reporte de Caja -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:caja' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-cash-register fa-3x text-success mb-2"></i>
+                                <h5 class="card-title">Caja</h5>
+                                <p class="card-text small">Apertura y cierre de cajas</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reporte de Ventas -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:ventas' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shopping-cart fa-3x text-warning mb-2"></i>
+                                <h5 class="card-title">Ventas</h5>
+                                <p class="card-text small">Detalle de ventas por período</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reporte de Clientes -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:clientes' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-info mb-2"></i>
+                                <h5 class="card-title">Clientes</h5>
+                                <p class="card-text small">Análisis de clientes y deudores</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reporte de Inventario -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:inventario' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-boxes fa-3x text-danger mb-2"></i>
+                                <h5 class="card-title">Inventario</h5>
+                                <p class="card-text small">Stock y disponibilidad de productos</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Reporte Financiero -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{% url 'reportes:financiero' %}" class="card text-decoration-none">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x text-secondary mb-2"></i>
+                                <h5 class="card-title">Financiero</h5>
+                                <p class="card-text small">Ingresos, gastos y utilidades</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}

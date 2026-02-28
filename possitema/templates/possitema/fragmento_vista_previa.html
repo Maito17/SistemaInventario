@@ -1,0 +1,90 @@
+<!-- Fragmento Vista Previa de Empresa -->
+<div class="card card-outline card-info">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-eye"></i> Vista Previa
+    </h3>
+  </div>
+  <div class="card-body">
+    {% if config %}
+      <div class="text-center mb-3">
+        {% if config.logo %}
+          <img src="{{ config.logo.url }}" alt="Logo" class="img-fluid" style="max-width: 150px; max-height: 120px;">
+        {% else %}
+          <div class="alert alert-light">
+            <i class="fas fa-image fa-3x text-muted"></i>
+            <p class="text-muted mt-2">Sin logo</p>
+          </div>
+        {% endif %}
+      </div>
+      <h5 class="mb-1">{{ config.nombre_empresa }}</h5>
+      {% if config.razon_social %}
+        <p class="text-muted mb-2"><small><strong>Razón Social:</strong> {{ config.razon_social }}</small></p>
+      {% endif %}
+      {% if config.nombre_comercial %}
+        <p class="text-muted mb-2"><small><strong>Nombre Comercial:</strong> {{ config.nombre_comercial }}</small></p>
+      {% endif %}
+      <p class="text-muted mb-2">
+        <small>
+          <strong>RUC:</strong> {{ config.ruc }}
+        </small>
+      </p>
+      {% if config.email %}
+        <p class="text-muted mb-2">
+          <small>
+            <i class="fas fa-envelope"></i> {{ config.email }}
+          </small>
+        </p>
+      {% endif %}
+      <p class="text-muted mb-2">
+        <small>
+          <strong>IVA:</strong> {{ config.iva_porcentaje }}%
+        </small>
+      </p>
+      <p class="text-muted">
+        <small>
+          <strong>Última actualización:</strong> {{ config.fecha_actualizacion|date:"d/m/Y H:i" }}
+        </small>
+      </p>
+    {% else %}
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Sin configuración</strong>
+        <p class="text-sm mt-2">
+          Aún no has creado una configuración de empresa. Completa el formulario a la izquierda para comenzar.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+<div class="card card-outline card-secondary mt-3">
+  <div class="card-header">
+    <h3 class="card-title">
+      <i class="fas fa-question-circle"></i> Información
+    </h3>
+  </div>
+  <div class="card-body">
+    <p class="text-sm">
+      <strong>📋 Campos Obligatorios:</strong>
+      <br>
+      • Nombre de la Empresa
+      <br>
+      • RUC/NIT
+    </p>
+    <hr>
+    <p class="text-sm">
+      <strong>✨ Dónde aparece esta información:</strong>
+      <br>
+      • En todos los tickets de venta
+      <br>
+      • En las facturas SRI
+      <br>
+      • En tu branding empresarial
+    </p>
+    <hr>
+    <p class="text-sm text-muted">
+      <i class="fas fa-lock"></i>
+      <strong>Seguridad:</strong> Solo superusuarios pueden editar esta configuración.
+    </p>
+  </div>
+</div>

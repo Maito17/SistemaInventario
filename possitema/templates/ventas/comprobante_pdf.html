@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-section {
+            flex: 1;
+        }
+        
+        .logo-section img {
+            max-width: 100px;
+            height: auto;
+        }
+        
+        .company-info {
+            flex: 2;
+            margin-left: 20px;
+        }
+        
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            font-size: 10px;
+            line-height: 1.6;
+        }
+        
+        .document-title {
+            flex: 1;
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .venta-number {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Content */
+        .content {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .label {
+            font-weight: bold;
+            width: 40%;
+        }
+        
+        .value {
+            width: 60%;
+            text-align: right;
+        }
+        
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 11px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* Totals */
+        .totals-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        .total-label {
+            width: 40%;
+            text-align: right;
+            padding-right: 20px;
+            font-weight: bold;
+        }
+        
+        .total-value {
+            width: 20%;
+            text-align: right;
+            padding-right: 10px;
+        }
+        
+        .total-row.final {
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 2px solid #667eea;
+            padding-top: 10px;
+            color: #667eea;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ccc;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .stamp {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #999;
+        }
+        
+        /* Page Break */
+        @media print {
+            .container {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                {% if config_empresa and config_empresa.logo %}
+                    <img src="{{ config_empresa.logo.url }}" alt="Logo">
+                {% endif %}
+            </div>
+            
+            <div class="company-info">
+                {% if config_empresa %}
+                    <div class="company-name">{{ config_empresa.nombre_empresa }}</div>
+                    <div class="company-details">
+                        <strong>RUC:</strong> {{ config_empresa.ruc }}<br>
+                        {% if config_empresa.direccion %}<strong>Direccion:</strong> {{ config_empresa.direccion }}<br>{% endif %}
+                        {% if config_empresa.telefono_celular %}<strong>Celular:</strong> {{ config_empresa.telefono_celular }}<br>{% endif %}
+                        {% if config_empresa.telefono_convencional %}<strong>Telefono:</strong> {{ config_empresa.telefono_convencional }}<br>{% endif %}
+                        {% if config_empresa.email %}<strong>Email:</strong> {{ config_empresa.email }}{% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="document-title">
+                COMPROBANTE DE VENTA
+                <div class="venta-number">#{{ venta.id_venta }}</div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Detalles de la Compra -->
+            <div class="section-title">DETALLES DE LA COMPRA</div>
+            <div class="info-row">
+                <span class="label">Cliente:</span>
+                <span class="value">{{ venta.cliente.nombre|default:"Consumidor Final" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Fecha:</span>
+                <span class="value">{{ venta.fecha_venta|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Metodo de Pago:</span>
+                <span class="value">{{ venta.get_metodo_pago_display }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Atendido por:</span>
+                <span class="value">{{ venta.antendido_por.get_full_name|default:venta.antendido_por.username }}</span>
+            </div>
+            
+            <!-- Productos -->
+            <div class="section-title">PRODUCTOS</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-right">Precio Unitario</th>
+                        <th class="text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in venta.detalles.all %}
+                    <tr>
+                        <td>{{ detalle.producto.nombre }}</td>
+                        <td class="text-center">{{ detalle.cantidad }}</td>
+                        <td class="text-right">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                        <td class="text-right">${{ detalle.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Totals -->
+            <div class="totals-section">
+                <div class="total-row">
+                    <div class="total-label">Subtotal:</div>
+                    <div class="total-value">${{ subtotal|floatformat:2 }}</div>
+                </div>
+                <div class="total-row">
+                    <div class="total-label">IVA (12%):</div>
+                    <div class="total-value">${{ iva|floatformat:2 }}</div>
+                </div>
+                <div class="total-row final">
+                    <div class="total-label">TOTAL:</div>
+                    <div class="total-value">${{ venta.total|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Gracias por tu compra</p>
+            {% if config_empresa and config_empresa.sitio_web %}
+                <p>{{ config_empresa.sitio_web }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="stamp">
+            <p>Este comprobante fue generado automaticamente</p>
+            <p>Documento valido como comprobante de compra</p>
+        </div>
+    </div>
+</body>
+</html>

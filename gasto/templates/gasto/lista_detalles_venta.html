@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalles Gastos Venta{% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Detalles de Gastos de Venta</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Inicio</a></li>
+          <li class="breadcrumb-item active">Detalles Gastos Venta</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-warning">
+            <h3 class="card-title">
+              <i class="fas fa-list mr-2"></i>
+              Listado de Detalles
+            </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            {% if detalles %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="bg-light">
+                    <tr>
+                      <th style="width: 10%">ID</th>
+                      <th style="width: 25%">Gasto</th>
+                      <th style="width: 15%">Concepto</th>
+                      <th style="width: 15%">Beneficiario</th>
+                      <th style="width: 15%">Canal</th>
+                      <th style="width: 10%">Monto</th>
+                      <th style="width: 10%">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for detalle in detalles %}
+                      <tr>
+                        <td>{{ detalle.id }}</td>
+                        <td>
+                          <a href="{% url 'gasto:detalle_gasto' detalle.gasto.id_gasto %}" class="text-primary">
+                            {{ detalle.gasto.descripcion|truncatewords:5 }}
+                          </a>
+                        </td>
+                        <td>
+                          <span class="badge badge-warning text-dark">{{ detalle.get_concepto_display }}</span>
+                        </td>
+                        <td>{{ detalle.beneficiario }}</td>
+                        <td>
+                          <span class="badge badge-info">{{ detalle.canal }}</span>
+                        </td>
+                        <td><strong>${{ detalle.gasto.monto|floatformat:2 }}</strong></td>
+                        <td>
+                          <a href="{% url 'admin:gasto_detallegastoventa_change' detalle.id %}" 
+                             class="btn btn-sm btn-primary" title="Editar">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                          <a href="{% url 'admin:gasto_detallegastoventa_delete' detalle.id %}" 
+                             class="btn btn-sm btn-danger" title="Eliminar"
+                             onclick="return confirm('¿Confirmar eliminación?')">
+                            <i class="fas fa-trash"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle mr-2"></i>
+                No hay detalles de gastos de venta registrados.
+              </div>
+            {% endif %}
+            
+            <!-- Paginación -->
+            {% include "includes/pagination.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card-header.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+    color: #333;
+  }
+  
+  .card-header.bg-warning .card-title {
+    color: #333;
+    margin: 0;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .badge-warning {
+    background-color: #ffc107 !important;
+  }
+  
+  .badge-info {
+    background-color: #17a2b8 !important;
+  }
+</style>
+{% endblock %}

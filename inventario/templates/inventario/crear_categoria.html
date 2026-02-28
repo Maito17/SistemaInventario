@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Categoría{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Registrar Nueva Categoría</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card card-primary">
+        <div class="card-header">
+            <h3 class="card-title">Datos de la Categoría</h3>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                </div>
+                <div class="form-group">
+                    {{ form.descripcion.label_tag }}
+                    {{ form.descripcion }}
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        Por favor, corrige los errores del formulario.
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Guardar Categoría</button>
+                <a href="{% url 'inventario:categorias_lista' %}" class="btn btn-default float-right">Cancelar</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registrar Pago{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Registrar Pago - Compra #{{ cuenta.compra.id_compra }}</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Información de la Deuda</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 50%">Proveedor:</th>
+                        <td>{{ cuenta.compra.proveedor.nombre }}</td>
+                    </tr>
+                    <tr>
+                        <th>Monto Total:</th>
+                        <td>${{ cuenta.monto_total|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Monto Pagado:</th>
+                        <td>${{ cuenta.monto_pagado|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th style="color: #dc3545"><strong>Saldo Pendiente:</strong></th>
+                        <td style="color: #dc3545"><strong>${{ cuenta.saldo|floatformat:2 }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Nuevo Pago</h3>
+            </div>
+            
+            <form method="POST" class="form-horizontal">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label for="monto" class="col-sm-3 col-form-label">Monto a Pagar *</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" class="form-control" id="monto" name="monto" step="0.01" min="0" max="{{ cuenta.saldo }}" required placeholder="0.00">
+                            </div>
+                            <small class="text-muted">Máximo: ${{ cuenta.saldo|floatformat:2 }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="metodo_pago" class="col-sm-3 col-form-label">Método de Pago *</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="metodo_pago" name="metodo_pago" required>
+                                <option value="">-- Selecciona un método --</option>
+                                {% for valor, etiqueta in metodos_pago %}
+                                    <option value="{{ valor }}">{{ etiqueta }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="referencia" class="col-sm-3 col-form-label">Referencia (Comprobante)</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="referencia" name="referencia" placeholder="Ej: CHK-001234, REF-BANCO">
+                            <small class="text-muted">Número de cheque, referencia bancaria, etc.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="notas" class="col-sm-3 col-form-label">Notas</label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" id="notas" name="notas" rows="3" placeholder="Observaciones adicionales del pago..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Registrar Pago
+                    </button>
+                    <a href="{% url 'finanzas:detalle_cuenta_por_pagar' cuenta.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validar que el monto no sea mayor al saldo
+    document.getElementById('monto').addEventListener('change', function() {
+        var monto = parseFloat(this.value) || 0;
+        var saldo = {{ cuenta.saldo }};
+        if (monto > saldo) {
+            this.value = saldo;
+            alert('El monto no puede ser mayor al saldo pendiente');
+        }
+    });
+</script>
+{% endblock content %}

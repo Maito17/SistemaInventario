@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Gasto - Sistema POS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .form-section h5 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 1rem;
+    }
+    
+    .form-section.admin {
+        border-left-color: #dc3545;
+    }
+    
+    .form-section.venta {
+        border-left-color: #ffc107;
+    }
+    
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .btn-group-submit {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 mt-4">
+        <div class="col-md-8">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle"></i> Crear Nuevo Gasto
+            </h1>
+            <p class="text-muted">Registra un nuevo gasto de administración o venta</p>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario Principal -->
+    <div class="card card-primary card-outline">
+        <div class="card-header card-header-custom">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-file-invoice-dollar"></i> Información del Gasto
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" id="gasto-form">
+                {% csrf_token %}
+
+                <!-- Sección 1: Información General -->
+                <div class="form-section">
+                    <h5><i class="fas fa-info-circle"></i> Información General</h5>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="tipo_gasto" class="font-weight-bold">
+                                <span class="text-danger">*</span> Tipo de Gasto
+                            </label>
+                            <select name="tipo_gasto" id="tipo_gasto" class="form-control form-control-lg" required onchange="cambiarTipoGasto()">
+                                <option value="">-- Seleccionar Tipo --</option>
+                                {% for tipo in tipos_gasto %}
+                                    <option value="{{ tipo.id }}">{{ tipo.get_nombre_display }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Elige si es Administración o Venta</small>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="descripcion" class="font-weight-bold">
+                                <span class="text-danger">*</span> Descripción
+                            </label>
+                            <input type="text" name="descripcion" id="descripcion" class="form-control form-control-lg" 
+                                   required placeholder="Ej: Salarios Noviembre, Campaña Facebook, etc.">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="monto" class="font-weight-bold">
+                                <span class="text-danger">*</span> Monto ($)
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" name="monto" id="monto" class="form-control" required 
+                                       min="0" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="fecha_gasto" class="font-weight-bold">
+                                <span class="text-danger">*</span> Fecha del Gasto
+                            </label>
+                            <input type="date" name="fecha_gasto" id="fecha_gasto" class="form-control form-control-lg" required>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="estado" class="font-weight-bold">Estado</label>
+                            <select name="estado" id="estado" class="form-control form-control-lg">
+                                <option value="PENDIENTE" selected>
+                                    <i class="fas fa-clock"></i> Pendiente
+                                </option>
+                                <option value="APROBADO">
+                                    <i class="fas fa-check-circle"></i> Aprobado
+                                </option>
+                                <option value="RECHAZADO">
+                                    <i class="fas fa-times-circle"></i> Rechazado
+                                </option>
+                                <option value="PAGADO">
+                                    <i class="fas fa-money-check"></i> Pagado
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Detalles de Administración -->
+                <div id="detalles-admin" class="form-section admin" style="display: none;">
+                    <h5><i class="fas fa-briefcase"></i> Detalles de Administración</h5>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="concepto_admin" class="font-weight-bold">Concepto</label>
+                            <select name="concepto_admin" id="concepto_admin" class="form-control form-control-lg">
+                                <option value="SALARIO">💰 Salarios del Personal</option>
+                                <option value="ALQUILER">🏢 Alquiler de Oficina</option>
+                                <option value="SERVICIOS">⚡ Servicios Básicos</option>
+                                <option value="SEGUROS">🛡️ Seguros</option>
+                                <option value="IMPUESTOS">📋 Impuestos y Licencias</option>
+                                <option value="MANTENIMIENTO">🔧 Mantenimiento de Equipos</option>
+                                <option value="CAPACITACION">📚 Capacitación del Personal</option>
+                                <option value="OTROS">📌 Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="responsable" class="font-weight-bold">Responsable</label>
+                            <input type="text" name="responsable" id="responsable" class="form-control form-control-lg" 
+                                   placeholder="Nombre del responsable del gasto">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 3: Detalles de Venta -->
+                <div id="detalles-venta" class="form-section venta" style="display: none;">
+                    <h5><i class="fas fa-chart-line"></i> Detalles de Venta</h5>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="concepto_venta" class="font-weight-bold">Concepto</label>
+                            <select name="concepto_venta" id="concepto_venta" class="form-control form-control-lg">
+                                <option value="SALARIO_VENDEDOR">💰 Salarios de Vendedores</option>
+                                <option value="COMISION">📊 Comisiones</option>
+                                <option value="PUBLICIDAD">📢 Publicidad y Marketing</option>
+                                <option value="EMPAQUE">📦 Material de Empaque</option>
+                                <option value="TRANSPORTE">🚚 Transporte y Distribución</option>
+                                <option value="PROMOCION">🎁 Promociones y Descuentos</option>
+                                <option value="OTROS">📌 Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="beneficiario" class="font-weight-bold">Beneficiario</label>
+                            <input type="text" name="beneficiario" id="beneficiario" class="form-control form-control-lg" 
+                                   placeholder="Nombre del beneficiario">
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="canal" class="font-weight-bold">Canal / Medio</label>
+                            <input type="text" name="canal" id="canal" class="form-control form-control-lg" 
+                                   placeholder="Ej: Facebook, Instagram, TV, Radio">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 4: Documentación -->
+                <div class="form-section">
+                    <h5><i class="fas fa-file-alt"></i> Documentación</h5>
+
+                    <div class="form-group">
+                        <label for="notas" class="font-weight-bold">Notas / Observaciones</label>
+                        <textarea name="notas" id="notas" class="form-control" rows="3" 
+                                  placeholder="Agrega comentarios adicionales sobre este gasto..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comprobante" class="font-weight-bold">Comprobante / Recibo (Opcional)</label>
+                        <div class="custom-file">
+                            <input type="file" name="comprobante" id="comprobante" class="custom-file-input" 
+                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                            <label class="custom-file-label" for="comprobante">Selecciona un archivo...</label>
+                        </div>
+                        <small class="form-text text-muted mt-2">
+                            <i class="fas fa-info-circle"></i> Formatos permitidos: PDF, JPG, PNG, DOC, DOCX (máx. 5MB)
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="btn-group-submit">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> Guardar Gasto
+                    </button>
+                    <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Establecer fecha actual
+    document.getElementById('fecha_gasto').valueAsDate = new Date();
+
+    // Cambiar campos según tipo de gasto
+    function cambiarTipoGasto() {
+        const tipoSelect = document.getElementById('tipo_gasto');
+        const detallesAdmin = document.getElementById('detalles-admin');
+        const detallesVenta = document.getElementById('detalles-venta');
+        
+        detallesAdmin.style.display = 'none';
+        detallesVenta.style.display = 'none';
+        
+        if (tipoSelect.selectedIndex > 0) {
+            const textoSeleccionado = tipoSelect.options[tipoSelect.selectedIndex].text;
+            
+            if (textoSeleccionado.includes('Administración')) {
+                detallesAdmin.style.display = 'block';
+                detallesAdmin.scrollIntoView({ behavior: 'smooth' });
+            } else if (textoSeleccionado.includes('Venta')) {
+                detallesVenta.style.display = 'block';
+                detallesVenta.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+
+    // Mostrar nombre del archivo seleccionado
+    document.getElementById('comprobante').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'Selecciona un archivo...';
+        document.querySelector('.custom-file-label').textContent = fileName;
+    });
+</script>
+{% endblock content %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle Solicitud de Crédito {% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Solicitud #{{ solicitud.id }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_solicitudes_credito' %}">Solicitudes</a></li>
+          <li class="breadcrumb-item active">Detalle</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-file-alt"></i> Información de la Solicitud
+            </h3>
+          </div>
+          
+          <div class="card-body">
+            <!-- Cliente -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h5 class="text-muted">Cliente</h5>
+                <p class="lead">
+                  <i class="fas fa-user"></i> {{ solicitud.cliente.nombre }}
+                </p>
+                <small class="text-muted">{{ solicitud.cliente.email }}</small>
+              </div>
+              <div class="col-md-6">
+                <h5 class="text-muted">Estado</h5>
+                <p>
+                  {% if solicitud.estado == 'PENDIENTE' %}
+                    <span class="badge badge-warning p-2" style="font-size: 1rem;">
+                      <i class="fas fa-hourglass-half"></i> Pendiente
+                    </span>
+                  {% elif solicitud.estado == 'APROBADA' %}
+                    <span class="badge badge-success p-2" style="font-size: 1rem;">
+                      <i class="fas fa-check-circle"></i> Aprobada
+                    </span>
+                  {% elif solicitud.estado == 'RECHAZADA' %}
+                    <span class="badge badge-danger p-2" style="font-size: 1rem;">
+                      <i class="fas fa-times-circle"></i> Rechazada
+                    </span>
+                  {% else %}
+                    <span class="badge badge-secondary p-2" style="font-size: 1rem;">
+                      <i class="fas fa-ban"></i> Cancelada
+                    </span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Montos -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <h5 class="text-muted">Monto Solicitado</h5>
+                <p class="display-4 text-success">
+                  ${{ solicitud.monto_solicitado|floatformat:2 }}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <h5 class="text-muted">Plazo</h5>
+                <p class="display-5">
+                  <i class="fas fa-calendar"></i> {{ solicitud.plazo_dias }} días
+                </p>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Productos -->
+            {% if solicitud.productos_detalle %}
+              <div class="mb-3">
+                <h5 class="text-muted">Productos a Financiar</h5>
+                <div class="p-3 bg-light rounded">
+                  {{ solicitud.productos_detalle|linebreaks }}
+                </div>
+              </div>
+            {% endif %}
+            
+            <!-- Motivo -->
+            {% if solicitud.motivo %}
+              <div class="mb-3">
+                <h5 class="text-muted">Motivo</h5>
+                <div class="p-3 bg-light rounded">
+                  {{ solicitud.motivo|linebreaks }}
+                </div>
+              </div>
+            {% endif %}
+            
+            <!-- Observaciones -->
+            {% if solicitud.observaciones %}
+              <div class="mb-3">
+                <h5 class="text-muted">Observaciones del Evaluador</h5>
+                <div class="p-3 bg-warning rounded">
+                  {{ solicitud.observaciones|linebreaks }}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Panel de Información -->
+      <div class="col-md-4">
+        <div class="card card-outline card-primary">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-clock"></i> Fechas
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <small class="text-muted">Fecha de Solicitud</small>
+              <p>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i:s" }}</p>
+            </div>
+            
+            {% if solicitud.fecha_respuesta %}
+              <div class="mb-3">
+                <small class="text-muted">Fecha de Respuesta</small>
+                <p>{{ solicitud.fecha_respuesta|date:"d/m/Y H:i:s" }}</p>
+              </div>
+            {% endif %}
+            
+            {% if solicitud.aprobado_por %}
+              <div class="mb-3">
+                <small class="text-muted">Evaluado por</small>
+                <p>{{ solicitud.aprobado_por.get_full_name|default:solicitud.aprobado_por.username }}</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Acciones -->
+        <div class="card card-outline card-success">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-cog"></i> Acciones
+            </h3>
+          </div>
+          <div class="card-body">
+            {% if solicitud.estado == 'PENDIENTE' %}
+              <a href="{% url 'finanzas:aprobar_solicitud_credito' solicitud.id %}" 
+                 class="btn btn-success btn-block mb-2">
+                <i class="fas fa-check"></i> Aprobar Solicitud
+              </a>
+              <a href="{% url 'finanzas:rechazar_solicitud_credito' solicitud.id %}" 
+                 class="btn btn-danger btn-block">
+                <i class="fas fa-times"></i> Rechazar Solicitud
+              </a>
+            {% else %}
+              <p class="text-muted">
+                <i class="fas fa-info-circle"></i> Esta solicitud ya ha sido evaluada.
+              </p>
+            {% endif %}
+            
+            <hr>
+            
+            <a href="{% url 'finanzas:lista_solicitudes_credito' %}" class="btn btn-secondary btn-block">
+              <i class="fas fa-arrow-left"></i> Volver
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

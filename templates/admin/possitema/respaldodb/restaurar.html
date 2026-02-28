@@ -1,0 +1,93 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Restaurar Base de Datos{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+  
+  <!-- Advertencia -->
+  <div style="background: #3a1a1a; border: 2px solid #e74c3c; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+    <h3 style="margin: 0 0 10px 0; color: #e74c3c;">⚠️ ADVERTENCIA: Restaurar Base de Datos</h3>
+    <p style="color: #e0a0a0; margin: 0 0 8px 0; font-size: 14px;">
+      Esta acción <strong>SOBRESCRIBIRÁ</strong> todos los datos actuales de la base de datos con los datos del archivo que subas.
+    </p>
+    <ul style="color: #d4a0a0; margin: 0; padding-left: 20px; font-size: 13px;">
+      <li>Se creará un <strong>respaldo de seguridad</strong> automático antes de restaurar</li>
+      <li>Los datos actuales (ventas, clientes, productos, etc.) serán reemplazados</li>
+      <li>Esta acción <strong>NO se puede deshacer</strong> fácilmente</li>
+      <li>Sube archivos <code>.sql.gz</code> (PostgreSQL) o <code>.json.gz</code> (formato portable) generados por este sistema</li>
+    </ul>
+  </div>
+
+  <!-- Formulario -->
+  <div style="background: #1a2332; border: 1px solid #2c3e50; border-radius: 8px; padding: 25px;">
+    <h3 style="margin: 0 0 20px 0; color: #3498db;">📤 Subir Archivo de Respaldo</h3>
+    
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <div style="margin-bottom: 20px;">
+        <label for="archivo_respaldo" style="display: block; color: #bdc3c7; margin-bottom: 8px; font-weight: bold;">
+          Archivo de respaldo (.sql.gz o .json.gz):
+        </label>
+        <input 
+          type="file" 
+          name="archivo_respaldo" 
+          id="archivo_respaldo"
+          accept=".gz,.sql.gz,.json.gz"
+          required
+          style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 5px; color: #c9d1d9; font-size: 14px;"
+        >
+        <p style="color: #6a737d; font-size: 12px; margin: 5px 0 0 0;">
+          Formatos aceptados: <strong>.sql.gz</strong> (PostgreSQL nativo) | <strong>.json.gz</strong> (formato portable, compatible con cualquier BD)
+        </p>
+      </div>
+      
+      <!-- Confirmación -->
+      <div style="background: #2a1a0a; border: 1px solid #e67e22; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; cursor: pointer; color: #f0c070;">
+          <input 
+            type="checkbox" 
+            name="confirmar" 
+            value="si" 
+            required
+            style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;"
+          >
+          <span style="font-size: 14px;">
+            <strong>Confirmo</strong> que deseo restaurar la base de datos. Entiendo que los datos actuales serán sobrescritos.
+          </span>
+        </label>
+      </div>
+      
+      <!-- Botones -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <a href="{% url 'admin:possitema_respaldodb_changelist' %}" 
+           class="button" 
+           style="background: #6c757d; padding: 10px 25px; border-radius: 5px; text-decoration: none; color: white;">
+          Cancelar
+        </a>
+        <button 
+          type="submit" 
+          class="button"
+          style="background: #e74c3c; padding: 10px 25px; border-radius: 5px; border: none; color: white; font-size: 14px; cursor: pointer;"
+          onclick="return confirm('¿Estás COMPLETAMENTE SEGURO de que deseas restaurar la base de datos? Esta acción sobrescribirá todos los datos actuales.');"
+        >
+          🔄 Restaurar Base de Datos
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info adicional -->
+  <div style="background: #1a2332; border: 1px solid #2c3e50; border-radius: 8px; padding: 15px; margin-top: 20px;">
+    <h4 style="margin: 0 0 8px 0; color: #27ae60;">💡 ¿Cuándo usar esta función?</h4>
+    <ul style="color: #95a5a6; margin: 0; padding-left: 20px; font-size: 13px;">
+      <li>Cuando necesitas recuperar datos después de un error o falla del sistema</li>
+      <li>Cuando quieres migrar datos de un equipo a otro</li>
+      <li>Cuando descargaste un respaldo y lo guardaste en USB o la nube</li>
+    </ul>
+  </div>
+
+</div>
+{% endblock %}

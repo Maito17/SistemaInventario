@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Asistencia{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-clock"></i> Reporte de Asistencia
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Asistencia</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="card card-primary collapsed-card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Filtros</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="display: none;">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_inicio" class="mr-2">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" 
+                       value="{{ fecha_inicio }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="fecha_fin" class="mr-2">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" 
+                       value="{{ fecha_fin }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <label for="usuario" class="mr-2">Usuario:</label>
+                <select name="usuario" id="usuario" class="form-control">
+                    <option value="">-- Todos --</option>
+                    {% for user in usuarios %}
+                    <option value="{{ user.id }}" {% if user.id|stringformat:"s" == usuario_id %}selected{% endif %}>
+                        {{ user.get_full_name|default:user.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-info"><i class="fas fa-calendar"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Días Registrados</span>
+                <span class="info-box-number">{{ total_dias }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-users"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Usuarios Activos</span>
+                <span class="info-box-number">{{ usuarios_activos }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Registros -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Registros de Asistencia</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Fecha</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Duración</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr>
+                        <td><strong>{{ registro.user.username }}</strong></td>
+                        <td>{{ registro.user.get_full_name|default:"-" }}</td>
+                        <td>{{ registro.fecha|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if registro.hora_entrada %}
+                                <span class="badge badge-success">{{ registro.hora_entrada|time:"H:i:s" }}</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Sin registrar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if registro.hora_salida %}
+                                <span class="badge badge-danger">{{ registro.hora_salida|time:"H:i:s" }}</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if registro.hora_entrada and registro.hora_salida %}
+                                {% with duracion=registro.timestamp_salida|timeuntil:registro.timestamp_entrada %}
+                                    {{ duracion }}
+                                {% endwith %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if registro.hora_salida %}
+                                <span class="badge badge-success">Completo</span>
+                            {% elif registro.hora_entrada %}
+                                <span class="badge badge-info">En curso</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Sin registrar</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No hay registros en este período
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

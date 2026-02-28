@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Dashboard base para heredar estilos y estructura general -->
+<div class="container mt-4">
+    {% block dashboard_content %}
+    <!-- Contenido específico del dashboard -->
+    {% endblock %}
+</div>
+{% endblock %}
