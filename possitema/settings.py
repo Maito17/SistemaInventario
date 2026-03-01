@@ -117,7 +117,11 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     # Railway / Producción → usa la URL que Railway provee
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL)
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True  # Obligatorio para herramientas externas como pg_dump en Railway
+        )
     }
 else:
     # Desarrollo local → PostgreSQL local
@@ -229,3 +233,11 @@ elif not genai:
     logger.info("google-generativeai no instalado. La IA de ventas estará desactivada.")
 else:
     logger.info("GEMINI_API_KEY no encontrada. La IA de ventas estará desactivada.")
+
+
+# Ruta absoluta para los respaldos dentro del contenedor de Railway
+BACKUP_ROOT = os.path.join(BASE_DIR, 'backup', 'respaldos')
+
+# Crear la carpeta automáticamente si no existe al iniciar la app
+if not os.path.exists(BACKUP_ROOT):
+    os.makedirs(BACKUP_ROOT, exist_ok=True)
