@@ -19,8 +19,6 @@ from datetime import datetime
 from pathlib import Path
 import yaml
 
-django.setup()
-
 # Agregar el directorio padre al path para importar Django
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

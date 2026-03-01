@@ -1,0 +1,2 @@
+[setup]
+aptPkgs = ["postgresql-client"]
