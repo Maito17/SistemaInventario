@@ -1,2 +1,14 @@
-[setup]
-aptPkgs = ["postgresql-client"]
+[phases.setup]
+aptPkgs = ["postgresql-client", "libpq-dev"]
+
+[phases.build]
+# Forzamos una actualización de los enlaces de las librerías
+cmds = ["pip install -r requirements.txt", "ldconfig || true"]
+
+[phases.postbuild]
+cmds = [
+    "mkdir -p backup/respaldos",
+    "mkdir -p media",
+    "python manage.py migrate", 
+    "python manage.py collectstatic --noinput"
+]
