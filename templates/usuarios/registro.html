@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Sistema POS</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Enlace al archivo CSS externo -->
+    <link rel="stylesheet" href="{% static 'login_styles.css' %}">
+</head>
+
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 overflow-hidden">
+    <!-- Fondo de paralaje con estrellas y partículas -->
+    <div class="parallax-bg" id="parallaxBg"></div>
+    <div id="particleContainer" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Contenedor principal del formulario -->
+    <div class="glass-effect rounded-3xl p-10 w-full max-w-md fade-in relative z-10" id="mainContainer">
+
+        <!-- Encabezado -->
+        <div class="text-center mb-6 slide-up">
+            <h2 class="text-3xl font-bold text-white mt-4">Crear Cuenta</h2>
+            <p class="text-white text-opacity-90 mt-3">
+                Completa tus datos para registrarte.
+            </p>
+        </div>
+
+        <!-- Formulario -->
+        <form method="POST" class="space-y-4 slide-up">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="input-group-icon">
+                <label for="{{ field.id_for_label }}" class="block text-white text-sm font-medium mb-1">{{ field.label }}</label>
+                <div class="relative">
+                    <input type="{{ field.field.widget.input_type }}" id="{{ field.id_for_label }}"
+                        name="{{ field.name }}"
+                        class="input-focus w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-xl text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:border-white focus:bg-opacity-30"
+                        placeholder="{{ field.label }}" required>
+                </div>
+                {% if field.errors %}
+                <p class="text-red-300 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Botón de acción -->
+            <button type="submit"
+                class="btn-hover w-full bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/50 flex items-center justify-center transition-all duration-300 ease-in-out relative overflow-hidden mt-6">
+                <span>Registrarse</span>
+            </button>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'usuarios:login' %}" class="text-white hover:text-indigo-200 text-sm font-medium">
+                    ¿Ya tienes cuenta? Inicia sesión aquí
+                </a>
+            </div>
+        </form>
+
+    </div>
+</body>
+
+</html>

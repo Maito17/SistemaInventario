@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Inventario{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-boxes"></i> Reporte de Inventario
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Inventario</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros de Tipo -->
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Tipos de Reporte</h3>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-3">
+                <label class="mr-2">Mostrar:</label>
+                <a href="?tipo=general" class="btn btn-sm {% if tipo_reporte == 'general' %}btn-primary{% else %}btn-outline-primary{% endif %} mr-2">
+                    <i class="fas fa-list"></i> General
+                </a>
+                <a href="?tipo=bajo_stock" class="btn btn-sm {% if tipo_reporte == 'bajo_stock' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                    <i class="fas fa-exclamation-triangle"></i> Bajo Stock
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mt-3">
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-info"><i class="fas fa-box"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total de Productos</span>
+                <span class="info-box-number">{{ total_productos }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Bajo Stock</span>
+                <span class="info-box-number">{{ bajo_stock }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-danger"><i class="fas fa-times-circle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Sin Stock</span>
+                <span class="info-box-number">{{ sin_stock }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-dollar-sign"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Valor Total</span>
+                <span class="info-box-number">${{ valor_total_inventario|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Productos -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">{{ titulo }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Cantidad</th>
+                        <th>Precio Costo</th>
+                        <th>Precio Venta</th>
+                        <th>Stock Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td><code>{{ producto.sku|default:"-" }}</code></td>
+                        <td><strong>{{ producto.nombre }}</strong></td>
+                        <td>{{ producto.categoria|default:"-" }}</td>
+                        <td class="text-center">{{ producto.cantidad }}</td>
+                        <td class="text-right">${{ producto.precio_costo|default:0|floatformat:2 }}</td>
+                        <td class="text-right">${{ producto.precio_venta|default:0|floatformat:2 }}</td>
+                        <td class="text-center">
+                            {% with total=producto.cantidad|mul:producto.precio_costo|default:0 %}
+                                ${{ total|floatformat:2 }}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if producto.cantidad == 0 %}
+                                <span class="badge badge-danger">Sin Stock</span>
+                            {% elif producto.cantidad <= 10 %}
+                                <span class="badge badge-warning">Bajo Stock</span>
+                            {% else %}
+                                <span class="badge badge-success">En Stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No hay productos para mostrar
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

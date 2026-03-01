@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Ventas por Período{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Reporte de Ventas por Período</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Reporte de Ventas</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Resumen de Período -->
+    {% if cantidad_ventas > 0 %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ cantidad_ventas }}</h3>
+                    <p>Ventas Realizadas</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>${{ total_general|floatformat:2 }}</h3>
+                    <p>Total de Ingresos</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>${{ total_general|floatformat:0 }}</h3>
+                    <p>Promedio por Venta</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="small-box bg-primary">
+                <div class="inner">
+                    <h3>{{ fecha_inicio|date:"d M" }} - {{ fecha_fin|date:"d M" }}</h3>
+                    <p>Período Consultado</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Gráficas de Ingresos y Ganancias del Mes -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ingresos del Mes</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="ingresosMesChart" style="max-height: 350px;"></canvas>
+                    <div class="mt-3 text-center">
+                        <strong>Total Ingresos del Mes:</strong>
+                        <span class="badge badge-success" id="totalIngresosMes">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ganancias del Mes</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="gananciasMesChart" style="max-height: 350px;"></canvas>
+                    <div class="mt-3 text-center">
+                        <strong>Total Ganancias del Mes:</strong>
+                        <span class="badge badge-info" id="totalGananciasMes">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfica lineal de composición de ingresos por cliente -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Composición de Ingresos por Cliente</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="ingresosLineChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i> Ventas Diarias
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filtro de fechas -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_inicio">Fecha Inicio</label>
+                                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio"
+                                        value="{{ fecha_inicio|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_fin">Fecha Fin</label>
+                                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
+                                        value="{{ fecha_fin|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="mb-4">
+                        <h5>Tendencia de Ventas por Día</h5>
+                        <canvas id="ventasChart" style="max-height: 400px;"></canvas>
+                    </div>
+                    <!-- Gráfico de Ganancias Diarias -->
+                    <div class="mb-4">
+                        <h5>Ganancias Diarias del Mes</h5>
+                        <canvas id="gananciasChart" style="max-height: 400px;"></canvas>
+                    </div>
+
+                    <!-- Tabla de ventas diarias -->
+                    <div class="table-responsive">
+                        <table id="ventasDiariasTable" class="table table-bordered table-striped table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th class="text-right">Total Ventas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if ventas_diarias %}
+                                    {% for venta in ventas_diarias %}
+                                    <tr>
+                                        <td>{{ venta.dia_formateado }}</td>
+                                        <td class="text-right">
+                                            <strong>${{ venta.suma_total|floatformat:2 }}</strong>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">
+                                        No hay ventas en el período seleccionado ({{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }}).
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                            {% if ventas_diarias %}
+                            <tfoot>
+                                <tr class="table-success font-weight-bold">
+                                    <td>TOTAL GENERAL</td>
+                                    <td class="text-right">${{ total_general|floatformat:2 }}</td>
+                                </tr>
+                            </tfoot>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Scripts de datos y gráficas -->
+{{ ventas_diarias|json_script:"ventas-diarias-data" }}
+{{ ganancias_diarias|json_script:"ganancias-diarias-data" }}
+{{ labels_pastel|json_script:"labels-pastel-data" }}
+{{ data_pastel|json_script:"data-pastel-data" }}
+{{ ingresos_mes|json_script:"ingresos-mes-data" }}
+{{ ganancias_mes|json_script:"ganancias-mes-data" }}
+
+<!-- DataTables CSS y JS para tablas ordenables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
+
+<script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+<script>
+    // Función para obtener datos desde json_script
+    function getDataFromScript(scriptId) {
+        var element = document.getElementById(scriptId);
+        return element ? JSON.parse(element.textContent) : [];
+    }
+
+    // Obtener datos desde los elementos script
+    var ingresosLabels = getDataFromScript('labels-pastel-data') || [];
+    var ingresosData = getDataFromScript('data-pastel-data') || [];
+
+    // Gráfica de Composición de Ingresos por Cliente
+    var ctxLine = document.getElementById('ingresosLineChart');
+    if (ctxLine && ingresosLabels.length > 0) {
+        var ctx = ctxLine.getContext('2d');
+        var ingresosColors = [
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 159, 64, 0.7)'
+        ];
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ingresosLabels,
+                datasets: [{
+                    label: 'Ingresos por Cliente',
+                    data: ingresosData,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    pointBackgroundColor: ingresosColors,
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    title: { display: true, text: 'Composición de Ingresos por Cliente' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toFixed(2); } },
+                        title: { display: true, text: 'Monto ($)' }
+                    },
+                    x: { title: { display: true, text: 'Cliente' } }
+                }
+            }
+        });
+    }
+
+    // Gráfica de Ingresos del Mes
+    var ingresosMesData = getDataFromScript('ingresos-mes-data') || [];
+    var ctxIngresos = document.getElementById('ingresosMesChart');
+    if (ctxIngresos && ingresosMesData && ingresosMesData.length > 0) {
+        var labelsIngresos = ingresosMesData.map(i => i.fecha);
+        var dataIngresos = ingresosMesData.map(i => i.monto);
+        var totalIngresos = dataIngresos.reduce((a, b) => a + b, 0);
+        document.getElementById('totalIngresosMes').textContent = '$' + totalIngresos.toFixed(2);
+        new Chart(ctxIngresos.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsIngresos,
+                datasets: [{
+                    label: 'Ingresos',
+                    data: dataIngresos,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Ingresos del Mes' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toFixed(2); } },
+                        title: { display: true, text: 'Monto ($)' }
+                    },
+                    x: { title: { display: true, text: 'Fecha' } }
+                }
+            }
+        });
+    }
+
+    // Gráfica de Ganancias del Mes
+    var gananciasMesData = getDataFromScript('ganancias-mes-data') || [];
+    var ctxGanancias = document.getElementById('gananciasMesChart');
+    if (ctxGanancias && gananciasMesData && gananciasMesData.length > 0) {
+        var labelsGanancias = gananciasMesData.map(g => g.fecha);
+        var dataGanancias = gananciasMesData.map(g => g.ganancia);
+        var totalGanancias = dataGanancias.reduce((a, b) => a + b, 0);
+        document.getElementById('totalGananciasMes').textContent = '$' + totalGanancias.toFixed(2);
+        new Chart(ctxGanancias.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsGanancias,
+                datasets: [{
+                    label: 'Ganancias',
+                    data: dataGanancias,
+                    borderColor: 'rgba(39, 174, 96, 1)',
+                    backgroundColor: 'rgba(39, 174, 96, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgba(39, 174, 96, 1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Ganancias del Mes' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toFixed(2); } },
+                        title: { display: true, text: 'Monto ($)' }
+                    },
+                    x: { title: { display: true, text: 'Fecha' } }
+                }
+            }
+        });
+    }
+
+    // Gráfica de Tendencia de Ventas Diarias
+    var ventasDiariasData = getDataFromScript('ventas-diarias-data') || [];
+    var ctxVentas = document.getElementById('ventasChart');
+    if (ctxVentas && ventasDiariasData && ventasDiariasData.length > 0) {
+        var labelsVentas = ventasDiariasData.map(v => v.dia);
+        var dataVentas = ventasDiariasData.map(v => parseFloat(v.suma_total));
+        new Chart(ctxVentas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsVentas,
+                datasets: [{
+                    label: 'Ventas Diarias',
+                    data: dataVentas,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Tendencia de Ventas por Día' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toFixed(2); } },
+                        title: { display: true, text: 'Monto ($)' }
+                    },
+                    x: { title: { display: true, text: 'Fecha' } }
+                }
+            }
+        });
+    }
+
+    // Gráfica de Ganancias Diarias
+    var gananciasDiariasData = getDataFromScript('ganancias-diarias-data') || [];
+    var ctxGananciasDiarias = document.getElementById('gananciasChart');
+    if (ctxGananciasDiarias && gananciasDiariasData && gananciasDiariasData.length > 0) {
+        var labelsGananciasDiarias = gananciasDiariasData.map(g => g.dia);
+        var dataGananciasDiarias = gananciasDiariasData.map(g => parseFloat(g.ganancia));
+        new Chart(ctxGananciasDiarias.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labelsGananciasDiarias,
+                datasets: [{
+                    label: 'Ganancias Diarias',
+                    data: dataGananciasDiarias,
+                    backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'Ganancias Diarias del Mes' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '$' + value.toFixed(2); } },
+                        title: { display: true, text: 'Monto ($)' }
+                    },
+                    x: { title: { display: true, text: 'Fecha' } }
+                }
+            }
+        });
+    }
+
+    // Inicializar DataTables para la tabla de ventas diarias
+    $(document).ready(function() {
+        $('#ventasDiariasTable').DataTable({
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros por página",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "No hay registros disponibles",
+                paginate: {
+                    first: "Primera",
+                    last: "Última",
+                    next: "Siguiente",
+                    previous: "Anterior"
+                }
+            },
+            paging: true,
+            searching: true,
+            ordering: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+{% endblock %}

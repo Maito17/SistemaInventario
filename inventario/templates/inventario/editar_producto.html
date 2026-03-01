@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Producto: {{ producto.nombre }}{% endblock title %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Editar Producto</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'inventario:lista' %}">Inventario</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content_header %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card card-warning">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit"></i> Modificando: {{ producto.nombre }} (ID: {{ producto.pk }})
+                    </h3>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        
+                        <!-- Manejo de Errores Globales -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- ID del Producto -->
+                        <div class="form-group">
+                            <label for="{{ form.id_producto.id_for_label }}">ID del Producto</label>
+                            {{ form.id_producto }}
+                            {% if form.id_producto.help_text %}
+                                <small class="form-text text-muted">{{ form.id_producto.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.id_producto.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Nombre -->
+                        <div class="form-group">
+                            <label for="{{ form.nombre.id_for_label }}">Nombre del Producto</label>
+                            {{ form.nombre }}
+                            {% for error in form.nombre.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="form-group">
+                            <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                            {{ form.descripcion }}
+                            {% for error in form.descripcion.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <!-- Precio de Costo -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.precio_costo.id_for_label }}">Precio de Costo</label>
+                                    {{ form.precio_costo }}
+                                    {% for error in form.precio_costo.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Precio de Venta -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.precio_venta.id_for_label }}">Precio de Venta</label>
+                                    {{ form.precio_venta }}
+                                    {% for error in form.precio_venta.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Cantidad/Stock -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.cantidad.id_for_label }}">Cantidad en Stock</label>
+                                    {{ form.cantidad }}
+                                    {% for error in form.cantidad.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="form-group">
+                            <label for="{{ form.categoria.id_for_label }}">Categoría</label>
+                            {{ form.categoria }}
+                            <small class="form-text text-muted">Selecciona la categoría del producto.</small>
+                            {% for error in form.categoria.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <!-- Tarifa IVA -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.tarifa_iva.id_for_label }}">Tarifa IVA</label>
+                                    {{ form.tarifa_iva }}
+                                    <small class="form-text text-muted">Selecciona la tarifa de impuesto aplicable.</small>
+                                    {% for error in form.tarifa_iva.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Estado del Producto -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.estado.id_for_label }}">Estado del Producto</label>
+                                    {{ form.estado }}
+                                    <small class="form-text text-muted">Define el estado del producto (Activo, Inactivo, etc.)</small>
+                                    {% for error in form.estado.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fecha de Caducidad -->
+                        <div class="form-group">
+                            <label for="{{ form.fecha_caducidad.id_for_label }}">
+                                Fecha de Caducidad (Opcional)
+                            </label>
+                            {{ form.fecha_caducidad }}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Solo si el producto tiene fecha de vencimiento (alimentos, medicinas, etc.)
+                            </small>
+                            {% for error in form.fecha_caducidad.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Campos ocultos -->
+                        {% for field in form.hidden_fields %}
+                            {{ field }}
+                        {% endfor %}
+
+                    </div>
+                    
+                    <div class="card-footer d-flex justify-content-between">
+                        <a href="{% url 'inventario:lista' %}" class="btn btn-default">
+                            <i class="fas fa-arrow-left"></i> Volver al Inventario
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

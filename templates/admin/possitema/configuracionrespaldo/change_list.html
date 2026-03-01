@@ -1,0 +1,31 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div style="background: #1a2332; border: 1px solid #2c3e50; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+    <h3 style="margin: 0 0 8px 0; color: #9b59b6;">⏰ Respaldos Automáticos Programados</h3>
+    <p style="margin: 0 0 8px 0; color: #bdc3c7; font-size: 13px;">
+      Configura la frecuencia y hora de los respaldos automáticos. 
+      El sistema programará automáticamente la tarea en <strong>cron</strong> cuando guardes la configuración.
+    </p>
+    <p style="margin: 0; color: #95a5a6; font-size: 12px;">
+      📅 <strong>Opciones:</strong> Diario, Cada 12h, Semanal, Mensual &nbsp;|&nbsp;
+      🕐 <strong>Horario personalizable</strong> (elige la hora exacta) &nbsp;|&nbsp;
+      📧 <strong>Notificación por email</strong> si un respaldo falla
+    </p>
+  </div>
+  
+  {% if not cl.result_list %}
+    <div style="background: #1a2332; border: 2px dashed #3498db; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 20px;">
+      <h3 style="color: #3498db; margin: 0 0 10px 0;">🔧 Configuración Inicial</h3>
+      <p style="color: #bdc3c7; margin: 0 0 15px 0;">
+        Aún no has configurado los respaldos automáticos. Haz clic en el botón para comenzar.
+      </p>
+      <a href="add/" class="button" style="background: #27ae60; padding: 10px 25px; font-size: 14px; border-radius: 5px;">
+        ➕ Configurar Respaldo Automático
+      </a>
+    </div>
+  {% endif %}
+  
+  {{ block.super }}
+{% endblock %}

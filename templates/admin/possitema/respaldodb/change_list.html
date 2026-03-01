@@ -1,0 +1,51 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:crear_respaldo' %}" class="button" style="background: #27ae60; padding: 8px 15px;">
+      💾 Crear Respaldo Ahora
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:crear_respaldo' %}?tipo=bd&formato=sql" class="button" style="background: #3498db; padding: 8px 15px;">
+      🗄️ BD (SQL)
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:crear_respaldo' %}?tipo=bd&formato=json" class="button" style="background: #9b59b6; padding: 8px 15px;">
+      📋 BD (JSON Portable)
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:crear_respaldo' %}?tipo=media" class="button" style="background: #e67e22; padding: 8px 15px;">
+      📁 Solo Media
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:restaurar_respaldo' %}" class="button" style="background: #e74c3c; padding: 8px 15px;">
+      🔄 Subir y Restaurar
+    </a>
+  </li>
+{% endblock %}
+
+{% block content %}
+  <div style="background: #1a2332; border: 1px solid #2c3e50; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+    <h3 style="margin: 0 0 8px 0; color: #3498db;">💡 Sistema de Respaldos</h3>
+    <p style="margin: 0 0 8px 0; color: #bdc3c7; font-size: 13px;">
+      Los respaldos se guardan en <code>backup/respaldos/</code>. 
+      Usa los botones de arriba para crear un nuevo respaldo o también puedes usar la terminal:
+      <code>python manage.py respaldo</code>
+    </p>
+    <p style="margin: 0; color: #95a5a6; font-size: 12px;">
+      🔐 Cada respaldo incluye verificación de integridad SHA256. 
+      📧 Se envían notificaciones por email si un respaldo automático falla.
+      ⬇ Haz clic en "Descargar" para obtener una copia del archivo.
+    </p>
+    <p style="margin: 8px 0 0 0; color: #9b59b6; font-size: 12px;">
+      🔄 <strong>SQL</strong>: respaldo nativo PostgreSQL (más rápido, solo PostgreSQL).
+      📋 <strong>JSON Portable</strong>: formato universal compatible con cualquier base de datos (ideal para migrar).
+    </p>
+  </div>
+  {{ block.super }}
+{% endblock %}

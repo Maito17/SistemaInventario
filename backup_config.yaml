@@ -1,0 +1,63 @@
+# Configuración de respaldo para SistemaInventario
+# NOTA: Las credenciales sensibles deben estar en variables de entorno
+
+backup:
+  enabled: true
+  local_path: backup/respaldos/
+  compress: true
+  retention_days: 30
+  include_media: true
+  media_path: media/
+  
+  db:
+    type: postgresql
+    # Usar DATABASE_URL para Railway/Heroku, si no usar variables individuales
+    use_database_url: true  # Railway proporciona DATABASE_URL
+    
+    # Fallback si no hay DATABASE_URL:
+    name: ${DATABASE_NAME:-sistema_inventario}
+    user: ${DATABASE_USER:-usuario_db}
+    password: ${DATABASE_PASSWORD:-tu_password}
+    host: ${DATABASE_HOST:-localhost}
+    port: ${DATABASE_PORT:-5432}
+  
+  # Almacenamiento Cloud (para persistencia en Railway)
+  cloud_storage:
+    enabled: false
+    type: google_drive  # Opciones: google_drive, aws_s3, azure_blob
+    google_drive:
+      enabled: false
+      credentials_path: ${GOOGLE_DRIVE_CREDENTIALS:-credenciales_drive.json}
+      folder_id: ${GOOGLE_DRIVE_FOLDER_ID:-}
+    
+    aws_s3:
+      enabled: false
+      bucket: ${AWS_S3_BUCKET:-}
+      region: ${AWS_REGION:-us-east-1}
+      access_key: ${AWS_ACCESS_KEY_ID:-}
+      secret_key: ${AWS_SECRET_ACCESS_KEY:-}
+    
+    # Subir respaldos automáticamente a cloud
+    auto_upload: false
+    keep_local: true  # Mantener copias locales también
+
+# Notificaciones sobre respaldos
+notifications:
+  email:
+    enabled: false
+    smtp_server: ${SMTP_SERVER:-smtp.tu-servidor.com}
+    smtp_port: ${SMTP_PORT:-587}
+    user: ${SMTP_USER:-tu_email@dominio.com}
+    password: ${SMTP_PASSWORD:-}
+    to: ${BACKUP_NOTIFICATION_EMAIL:-admin@dominio.com}
+  
+  slack:
+    enabled: false
+    webhook_url: ${SLACK_WEBHOOK_URL:-}
+
+# Configuración para Railway
+railway:
+  # En Railway, deshabilitar respaldos en cron (usar su sistema integrado)
+  use_railway_backups: true  # Railway auto-backupea PostgreSQL
+  environment: ${ENVIRONMENT:-development}  # development|production
+

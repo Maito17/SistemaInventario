@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registro de Acceso - {{ usuario.get_full_name|default:usuario.username }}{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">
+        <i class="fas fa-history"></i> Historial de Acceso
+    </h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            Usuario: <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>
+        </h3>
+        <div class="card-tools">
+            <span class="badge badge-primary">Últimos {{ dias }} días</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Estadísticas del usuario -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ total_logins }}</h3>
+                        <p>Entradas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ total_logouts }}</h3>
+                        <p>Salidas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>
+                            {% if tiempo_promedio_segundos %}
+                                {% widthratio tiempo_promedio_segundos 60 1 as minutos %}
+                                {{ minutos }}m
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h3>
+                        <p>Tiempo Promedio</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="small-box bg-secondary">
+                    <div class="inner">
+                        <h3>{{ registros|length }}</h3>
+                        <p>Total Registros</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opciones de días -->
+        <div class="mb-3">
+            <label>Mostrar últimos:</label>
+            <div>
+                <a href="?dias=7" class="btn btn-sm {% if dias == 7 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-1">
+                    7 días
+                </a>
+                <a href="?dias=30" class="btn btn-sm {% if dias == 30 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-1">
+                    30 días
+                </a>
+                <a href="?dias=90" class="btn btn-sm {% if dias == 90 %}btn-primary{% else %}btn-outline-primary{% endif %} mr-1">
+                    90 días
+                </a>
+                <a href="?dias=365" class="btn btn-sm {% if dias == 365 %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    1 año
+                </a>
+            </div>
+        </div>
+
+        <!-- Tabla de registros -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="tabla-historial">
+                <thead class="bg-dark">
+                    <tr>
+                        <th><i class="fas fa-sign-in-alt"></i> Evento</th>
+                        <th><i class="fas fa-clock"></i> Fecha y Hora</th>
+                        <th><i class="fas fa-globe"></i> IP Address</th>
+                        <th><i class="fas fa-hourglass-half"></i> Duración</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                        <tr>
+                            <td>
+                                {% if registro.tipo_evento == 'LOGIN' %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check"></i> Entrada
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-times"></i> Salida
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-info">
+                                    {{ registro.fecha_hora|date:"d/m/Y H:i:s" }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if registro.ip_address %}
+                                    <code>{{ registro.ip_address }}</code>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if registro.duracion_sesion %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-clock"></i> {{ registro.duracion_formateada }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if registro.notas %}
+                                    <small>{{ registro.notas }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox"></i> No hay registros de acceso en este período
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'usuarios:registro_acceso' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Registro General
+        </a>
+        <button type="button" class="btn btn-info" onclick="location.reload();" style="float: right;">
+            <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+{% endblock content %}

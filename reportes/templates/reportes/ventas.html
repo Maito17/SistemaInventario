@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Ventas{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-shopping-cart"></i> Reporte de Ventas
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'possitema:dashboard' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'reportes:inicio' %}">Reportes</a></li>
+                    <li class="breadcrumb-item active">Ventas</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-filter"></i> Filtros y Búsqueda</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="form-inline">
+            <div class="form-group mr-3 mb-2">
+                <label for="fecha_inicio" class="mr-2"><i class="fas fa-calendar"></i> Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" 
+                       value="{{ fecha_inicio }}">
+            </div>
+            <div class="form-group mr-3 mb-2">
+                <label for="fecha_fin" class="mr-2"><i class="fas fa-calendar"></i> Fecha Fin:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" 
+                       value="{{ fecha_fin }}">
+            </div>
+            <div class="form-group mr-3 mb-2">
+                <label for="tipo" class="mr-2"><i class="fas fa-chart-bar"></i> Tipo:</label>
+                <select name="tipo" id="tipo" class="form-control">
+                    <option value="diario" {% if tipo_reporte == 'diario' %}selected{% endif %}>Diario</option>
+                    <option value="producto" {% if tipo_reporte == 'producto' %}selected{% endif %}>Por Producto</option>
+                    <option value="cliente" {% if tipo_reporte == 'cliente' %}selected{% endif %}>Por Cliente</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'reportes:ventas' %}" class="btn btn-secondary mb-2 ml-2">
+                <i class="fas fa-redo"></i> Limpiar
+            </a>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-info"><i class="fas fa-receipt"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Total de Ventas</span>
+                <span class="info-box-number">{{ total_cantidad }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-dollar-sign"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Monto Total</span>
+                <span class="info-box-number">${{ total_monto|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Ventas -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">{{ titulo }}</h3>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool btn-sm" onclick="window.print()" title="Imprimir">
+                <i class="fas fa-print"></i>
+            </button>
+            <button type="button" class="btn btn-tool btn-sm" onclick="exportarTablaCSV()" title="Descargar CSV">
+                <i class="fas fa-download"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="tabla-ventas">
+                <thead>
+                    <tr>
+                        {% if tipo_reporte == 'diario' %}
+                            <th>Fecha</th>
+                            <th>Cantidad de Ventas</th>
+                            <th>Monto Total</th>
+                            <th>Promedio por Venta</th>
+                        {% elif tipo_reporte == 'producto' %}
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Monto Total</th>
+                            <th>Cantidad de Ventas</th>
+                            <th>Promedio por Venta</th>
+                        {% else %}
+                            <th>Cliente</th>
+                            <th>Monto Total</th>
+                            <th>Cantidad de Compras</th>
+                            <th>Promedio por Compra</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        {% if tipo_reporte == 'diario' %}
+                            <td>{{ venta.fecha|date:"d/m/Y" }}</td>
+                            <td class="text-center">{{ venta.cantidad_ventas }}</td>
+                            <td class="text-right">${{ venta.total_monto|floatformat:2 }}</td>
+                            <td class="text-right">${{ venta.total_monto|div:venta.cantidad_ventas|floatformat:2 }}</td>
+                        {% elif tipo_reporte == 'producto' %}
+                            <td><strong>{{ venta.producto__nombre }}</strong></td>
+                            <td class="text-center">{{ venta.total_cantidad }}</td>
+                            <td class="text-right">${{ venta.total_monto|floatformat:2 }}</td>
+                            <td class="text-center">{{ venta.cantidad_ventas }}</td>
+                            <td class="text-right">${{ venta.total_monto|div:venta.cantidad_ventas|floatformat:2 }}</td>
+                        {% else %}
+                            <td><strong>{{ venta.cliente__nombre }}</strong></td>
+                            <td class="text-right">${{ venta.total_monto|floatformat:2 }}</td>
+                            <td class="text-center">{{ venta.cantidad_compras }}</td>
+                            <td class="text-right">${{ venta.total_monto|div:venta.cantidad_compras|floatformat:2 }}</td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No hay ventas en este período
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<script>
+    // Función para exportar tabla a CSV
+    function exportarTablaCSV() {
+        const tabla = document.getElementById('tabla-ventas');
+        let csv = [];
+        
+        // Obtener encabezados
+        const encabezados = tabla.querySelectorAll('thead th');
+        const filasEncabezado = [];
+        encabezados.forEach(th => {
+            filasEncabezado.push(th.textContent.trim());
+        });
+        csv.push(filasEncabezado.join(','));
+        
+        // Obtener datos
+        const filas = tabla.querySelectorAll('tbody tr');
+        filas.forEach(tr => {
+            const celdas = tr.querySelectorAll('td');
+            const datosFila = [];
+            celdas.forEach(td => {
+                let valor = td.textContent.trim();
+                // Escapar comillas y comas
+                valor = '"' + valor.replace(/"/g, '""') + '"';
+                datosFila.push(valor);
+            });
+            if (datosFila.length > 0) {
+                csv.push(datosFila.join(','));
+            }
+        });
+        
+        // Crear descarga
+        const contenido = csv.join('\n');
+        const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+        const enlace = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        const fecha = new Date().toISOString().split('T')[0];
+        enlace.setAttribute('href', url);
+        enlace.setAttribute('download', `reporte_ventas_${fecha}.csv`);
+        enlace.style.visibility = 'hidden';
+        
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+    }
+</script>
+

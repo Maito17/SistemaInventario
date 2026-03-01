@@ -1,0 +1,1685 @@
+{% extends "base.html" %} {% load static %} {% block title %}Nueva Venta{% endblock title %} {% block content_header %}
+<h1 class="m-0">Punto de Venta (POS)</h1>
+{% endblock content_header %} {% block content %}
+<!-- 
+    NOTA: La vista que renderiza esta plantilla debe asegurar que si la caja está
+    abierta, pase la 'caja_pk' al contexto (por ejemplo, con un valor > 0).
+-->
+{% if not caja_pk %}
+<!-- 
+        BLOQUE DE CAJA INACTIVA: Bloquea el acceso al POS si el turno no ha iniciado.
+    -->
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card card-warning card-outline">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-exclamation-triangle"></i> ¡Caja Cerrada!
+        </h3>
+      </div>
+      <div class="card-body text-center">
+        <p class="lead">
+          No puedes realizar ventas hasta que inicies un nuevo turno.
+        </p>
+        <p>Por favor, abre tu caja para comenzar a operar.</p>
+        <!-- Asumiendo que 'apertura_caja' es la vista que maneja la apertura -->
+        <a
+          href="{% url 'ventas:apertura_caja' %}"
+          class="btn btn-lg bg-olive mt-3"
+        >
+          <i class="fas fa-cash-register"></i> Abrir Caja
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<!-- Interfaz Normal del POS -->
+<div class="row">
+  <!-- COLUMNA PRINCIPAL (BÚSQUEDA Y CARRITO) -->
+  <div class="col-md-9">
+    <!-- TARJETA DE BÚSQUEDA RÁPIDA -->
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-search"></i> Búsqueda Rápida
+        </h3>
+      </div>
+      <div class="card-body">
+        {% csrf_token %}
+        <div class="input-group input-group-lg">
+          <!-- Input de búsqueda por nombre o ID -->
+          <input
+            type="text"
+            id="producto-search-input"
+            class="form-control"
+            placeholder="Buscar producto por nombre o ID..."
+          />
+          <div class="input-group-append">
+            <!-- Botón Escáner de Código (Usará el valor del input) -->
+            <button type="button" class="btn btn-info" id="btn-scan-barcode">
+              <i class="fas fa-barcode"></i>
+            </button>
+          </div>
+        </div>
+        <!-- Contenedor para los resultados de búsqueda AJAX -->
+        <div id="search-results-container" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- TARJETA DEL CARRITO DE COMPRAS -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-shopping-cart"></i> Carrito de Compras
+        </h3>
+      </div>
+      <div class="card-body p-0">
+        <table
+          id="carrito-table"
+          class="table table-striped table-valign-middle"
+        >
+          <thead>
+            <tr>
+              <th style="width: 5%">Cant.</th>
+              <th>Producto</th>
+              <th style="width: 12%">Precio Unit.</th>
+              <th style="width: 10%">IVA</th>
+              <th style="width: 15%">Subtotal</th>
+              <th style="width: 5%">Acción</th>
+            </tr>
+          </thead>
+          <tbody id="carrito-items">
+            <tr>
+              <td colspan="6" class="text-center text-muted">
+                Aún no hay productos en el carrito.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMNA DE RESUMEN Y GESTIÓN -->
+  <div class="col-md-3">
+    <!-- Bloque 1: Resumen de Venta -->
+    <div class="card card-success card-outline">
+      <div class="card-header">
+        <h3 class="card-title">
+          <i class="fas fa-money-check-alt"></i> Resumen de Venta
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cliente-search-input">
+            <i class="fas fa-user"></i> Cliente
+          </label>
+          <input
+            type="text"
+            id="cliente-search-input"
+            class="form-control"
+            placeholder="Buscar cliente por nombre, email o teléfono..."
+          />
+
+          <!-- Contenedor de resultados de búsqueda -->
+          <div
+            id="cliente-search-results"
+            class="mt-2"
+            style="max-height: 200px; overflow-y: auto"
+          ></div>
+
+          <!-- Cliente seleccionado (oculto) -->
+          <input type="hidden" id="cliente-select" value="" />
+          <div
+            class="mt-2 p-3 bg-light rounded"
+            id="cliente-seleccionado-display"
+          >
+            <small class="text-muted">
+              <i class="fas fa-user-check"></i> Cliente:
+              <strong id="cliente-nombre-display">Consumidor Final</strong>
+            </small>
+            <div id="cliente-ruc-display" style="display: none; margin-top: 8px;">
+              <small class="text-muted">
+                <i class="fas fa-id-card"></i> RUC/Cédula:
+                <span id="cliente-ruc-valor">N/A</span>
+                <button type="button" class="btn btn-sm btn-link p-0" id="btn-editar-ruc" title="Editar RUC">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </small>
+            </div>
+            <div id="cliente-ruc-editar" style="display: none; margin-top: 8px;">
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" id="cliente-ruc-input" placeholder="RUC/Cédula">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-primary btn-sm" type="button" id="btn-guardar-ruc">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="btn-cancelar-ruc">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- INFORMACIÓN DE CRÉDITO DEL CLIENTE -->
+            <div id="cliente-credito-display" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd;">
+              <div class="bg-info p-2 rounded" style="font-size: 0.85rem;">
+                <div class="mb-2">
+                  <i class="fas fa-credit-card"></i> <strong>Crédito Disponible:</strong>
+                  <span id="credito-disponible" class="badge badge-light">$0.00</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                  <div id="credito-bar" class="progress-bar bg-success" style="width: 0%;"></div>
+                </div>
+                <small class="text-muted d-block mt-2">
+                  Límite: <strong id="credito-limite">$0.00</strong> | 
+                  Usado: <strong id="credito-usado">$0.00</strong> | 
+                  Plazo: <strong id="credito-plazo">30 días</strong>
+                </small>
+                <div id="credito-pendientes" style="margin-top: 8px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque: Resumen Financiero -->
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-calculator"></i> Resumen Financiero
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="row mb-2">
+              <div class="col-8">
+                <p class="mb-0"><small>Subtotal:</small></p>
+              </div>
+              <div class="col-4 text-right">
+                <p class="mb-0"><small id="subtotal-display">$0.00</small></p>
+              </div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-8">
+                <p class="mb-0"><small>IVA:</small></p>
+              </div>
+              <div class="col-4 text-right">
+                <p class="mb-0"><small id="iva-display">$0.00</small></p>
+              </div>
+            </div>
+            <hr class="my-2">
+            <div class="row">
+              <div class="col-8">
+                <p class="mb-0"><strong>Total:</strong></p>
+              </div>
+              <div class="col-4 text-right">
+                <p class="mb-0"><strong id="total-display" style="font-size: 1.2rem; color: #28a745;">$0.00</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque: Calculadora de Cambio (Para Pagos en Efectivo) -->
+        <div class="card card-info" id="card-calculadora-cambio" style="display: none;">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-money-bill-wave"></i> Calculadora de Cambio
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="monto-recibido">Monto Recibido:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">$</span>
+                </div>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  id="monto-recibido" 
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                >
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-6">
+                <div class="form-group">
+                  <label>Total a Pagar:</label>
+                  <div class="form-control-static" id="total-a-pagar-cambio" style="padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
+                    $0.00
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label>Cambio:</label>
+                  <div class="form-control-static" id="cambio-display" style="padding: 10px; background-color: #e8f5e9; border-radius: 4px; font-weight: bold; font-size: 1.1rem; color: #28a745;">
+                    $0.00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones rápidos de denominaciones -->
+            <div class="form-group mt-3">
+              <label>Denominaciones Rápidas:</label>
+              <div class="btn-group btn-block" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm btn-denominacion" data-valor="10">$10</button>
+                <button type="button" class="btn btn-outline-primary btn-sm btn-denominacion" data-valor="20">$20</button>
+                <button type="button" class="btn btn-outline-primary btn-sm btn-denominacion" data-valor="50">$50</button>
+                <button type="button" class="btn btn-outline-primary btn-sm btn-denominacion" data-valor="100">$100</button>
+              </div>
+              <div class="btn-group btn-block mt-2" role="group">
+                <button type="button" class="btn btn-outline-success btn-sm btn-denominacion" data-valor="exact">Monto Exacto</button>
+                <button type="button" class="btn btn-outline-success btn-sm btn-denominacion" data-valor="round">Redondear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-outline card-success">
+          <div class="card-header">
+            <h3 class="card-title">🧾 Documento de Venta</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="tipo_documento">Tipo de Documento:</label>
+              <select class="form-control" id="tipo_documento">
+                <option value="TICKET_SIMPLE" selected>
+                  Ticket / Consumidor Final (Formato Pequeño)
+                </option>
+                <option value="FACTURA_SRI">
+                  Factura (SRI - Formato Oficial)
+                </option>
+              </select>
+            </div>
+
+            <!-- Opción de Método de Pago: Múltiples opciones -->
+            <div class="form-group" id="metodo-pago-section">
+              <label style="font-size: 1.1rem; font-weight: 600;"><i class="fas fa-money-check-alt"></i> Método de Pago:</label>
+              
+              <!-- Botones de métodos de pago - Ancho completo -->
+              <button type="button" class="btn btn-block btn-success btn-lg metodo-pago-btn mt-2" 
+                      data-metodo="efectivo" id="btn-efectivo" style="border: 2px solid; font-weight: 600;">
+                <i class="fas fa-money-bill-wave"></i> Efectivo
+              </button>
+              
+              <button type="button" class="btn btn-block btn-primary btn-lg metodo-pago-btn mt-2" 
+                      data-metodo="transferencia" id="btn-transferencia" style="border: 2px solid; font-weight: 600;">
+                <i class="fas fa-exchange-alt"></i> Transferencia
+              </button>
+              
+              <button type="button" class="btn btn-block btn-warning btn-lg metodo-pago-btn mt-2" 
+                      data-metodo="cheque" id="btn-cheque" style="border: 2px solid; font-weight: 600;">
+                <i class="fas fa-receipt"></i> Cheque
+              </button>
+              
+              <button type="button" class="btn btn-block btn-info btn-lg metodo-pago-btn mt-2" 
+                      data-metodo="tarjeta" id="btn-tarjeta" style="border: 2px solid; font-weight: 600;">
+                <i class="fas fa-credit-card"></i> Tarjeta
+              </button>
+              
+              <!-- Botón Crédito separado -->
+              <a href="{% url 'finanzas:crear_solicitud_credito' %}" 
+                 class="btn btn-block btn-info btn-lg mt-3" id="btn-credito-venta" style="border: 2px solid; font-weight: 600;">
+                <i class="fas fa-handshake"></i> Crédito - Configurar Cliente
+              </a>
+              
+              <!-- Campo oculto para el método seleccionado -->
+              <input type="hidden" id="metodo_pago_selected" value="">
+              
+              <!-- CAMPOS ESPECÍFICOS POR MÉTODO DE PAGO -->
+              
+              <!-- Campo para Transferencia -->
+              <div class="form-group mt-3" id="transferencia-fields" style="display: none;">
+                <label for="comprobante-transferencia" style="font-weight: 600;">
+                  <i class="fas fa-receipt"></i> Número de Comprobante/Referencia
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="comprobante-transferencia" 
+                  placeholder="Ej: TRF-2024-001234 o código de referencia del banco"
+                  maxlength="100"
+                >
+                <small class="form-text text-muted mt-1">
+                  <i class="fas fa-info-circle"></i> Ingresa el número de comprobante o referencia de la transferencia bancaria
+                </small>
+              </div>
+              
+              <!-- Campo para Cheque -->
+              <div class="form-group mt-3" id="cheque-fields" style="display: none;">
+                <label for="numero-cheque" style="font-weight: 600;">
+                  <i class="fas fa-receipt"></i> Número de Cheque
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="numero-cheque" 
+                  placeholder="Ej: 123456"
+                  maxlength="50"
+                >
+                <small class="form-text text-muted mt-1">
+                  <i class="fas fa-info-circle"></i> Ingresa el número de cheque para referencia
+                </small>
+              </div>
+              
+              <!-- Campo para Tarjeta -->
+              <div class="form-group mt-3" id="tarjeta-fields" style="display: none;">
+                <label for="referencia-tarjeta" style="font-weight: 600;">
+                  <i class="fas fa-receipt"></i> Referencia/Autorización
+                </label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="referencia-tarjeta" 
+                  placeholder="Ej: número de autorización o referencia"
+                  maxlength="100"
+                >
+                <small class="form-text text-muted mt-1">
+                  <i class="fas fa-info-circle"></i> Ingresa el número de autorización o referencia de la tarjeta
+                </small>
+              </div>
+              
+              <small class="form-text text-muted mt-3" id="credito-aviso"></small>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button
+              type="button"
+              id="btnProcesarPago"
+              class="btn btn-success btn-block"
+            >
+              <i class="fas fa-cash-register"></i> Procesar Pago
+            </button>
+            <button
+              type="button"
+              id="btnCancelarVenta"
+              class="btn btn-danger btn-block mt-2"
+            >
+              <i class="fas fa-times-circle"></i> Cancelar Venta
+            </button>
+          </div>
+        </div>
+
+        <!-- Bloque 2: Gestión de Caja (AÑADIDO PARA EL CIERRE) -->
+        <div class="card card-warning card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-cash-register"></i> Gestión de Caja
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <p class="mb-1">
+                <i class="fas fa-user-circle text-info mr-2"></i>
+                <strong>Usuario:</strong>
+                <span class="badge badge-info">
+                  {% if caja.usuario_apertura.get_full_name %}{{ caja.usuario_apertura.get_full_name }} ({{ caja.usuario_apertura.username }}){% else %}{{ caja.usuario_apertura.username }}{% endif %}
+                </span>
+              </p>
+              <p class="mb-1">
+                <i class="fas fa-box-open text-primary mr-2"></i>
+                <strong>Caja ID:</strong>
+                <span class="badge badge-primary">{{ caja_pk }}</span>
+              </p>
+              <p class="mb-0">
+                <i class="fas fa-clock text-success mr-2"></i>
+                <strong>Apertura:</strong>
+                <span class="text-muted">{{ caja.fecha_apertura|date:"d/M/Y H:i" }}</span>
+              </p>
+            </div>
+            <hr />
+            <a
+              href="{% url 'ventas:estado_caja' pk=caja_pk %}"
+              class="btn btn-warning btn-block"
+            >
+              <i class="fas fa-lock"></i> Cerrar Caja / Ver Estado
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %} {% endblock content %} {% block extra_js %}
+    {{ block.super }}
+    <!-- Dependencias para el POS -->
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Necesitas el plugin Select2 para el selector de clientes, si lo usas -->
+    <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
+
+    <script>
+      // ===============================================
+      // BÚSQUEDA EN VIVO DE CLIENTES
+      // ===============================================
+      let clienteSearchTimeout;
+
+      $("#cliente-search-input").on("keyup", function () {
+        const query = $(this).val().trim();
+        const $resultsContainer = $("#cliente-search-results");
+
+        clearTimeout(clienteSearchTimeout);
+
+        // Si no hay texto, mostrar opción de consumidor final
+        if (query.length < 1) {
+          $resultsContainer.html(`
+                <div class="list-group">
+                    <button type="button" class="list-group-item list-group-item-action btn-select-cliente" 
+                        data-cliente-id="" data-cliente-nombre="Consumidor Final">
+                        <i class="fas fa-user-circle text-muted"></i> <strong>Consumidor Final</strong>
+                    </button>
+                </div>
+            `);
+          return;
+        }
+
+        clienteSearchTimeout = setTimeout(function () {
+          $.ajax({
+            url: URL_BUSQUEDA_CLIENTES,
+            type: "GET",
+            data: { q: query },
+            dataType: "json",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            success: function (clientes) {
+              $resultsContainer.empty();
+
+              if (clientes.length > 0) {
+                let html = '<div class="list-group">';
+                clientes.forEach((cliente) => {
+                  let icon = cliente.is_default
+                    ? "fa-user-circle text-muted"
+                    : "fa-user text-info";
+                  let details = cliente.email
+                    ? `<br><small class="text-muted">${cliente.email}</small>`
+                    : "";
+                  if (cliente.telefono) {
+                    details += `<br><small class="text-muted">${cliente.telefono}</small>`;
+                  }
+
+                  html += `
+                                <button type="button" class="list-group-item list-group-item-action btn-select-cliente text-left" 
+                                    data-cliente-id="${cliente.id}" data-cliente-nombre="${cliente.nombre}">
+                                    <i class="fas ${icon}"></i> <strong>${cliente.nombre}</strong>
+                                    ${details}
+                                </button>
+                            `;
+                });
+                html += "</div>";
+                $resultsContainer.html(html);
+              } else {
+                $resultsContainer.html(
+                  '<p class="text-muted text-center py-2"><small>No se encontraron clientes</small></p>'
+                );
+              }
+            },
+            error: function () {
+              $resultsContainer.html(
+                '<p class="text-danger text-center py-2"><small>Error en la búsqueda</small></p>'
+              );
+            },
+          });
+        }, 300);
+      });
+
+      // Seleccionar cliente
+      $(document).on("click", ".btn-select-cliente", function () {
+        const clienteId = $(this).data("cliente-id");
+        const clienteNombre = $(this).data("cliente-nombre");
+
+        $("#cliente-select").val(clienteId);
+        $("#cliente-search-input").val("");
+        $("#cliente-search-results").empty();
+
+        // Si es Consumidor Final, no consultar detalle por AJAX
+        if (!clienteId) {
+          $("#cliente-nombre-display").text("Consumidor Final");
+          $("#cliente-ruc-valor").text("N/A");
+          $("#cliente-ruc-input").val("");
+          $("#cliente-ruc-display").hide();
+          $("#cliente-ruc-editar").hide();
+          $("#cliente-credito-display").hide();
+          $("#credito-pendientes").html('');
+          $("#credito-aviso").text('');
+          $("#metodo-pago-section").show();
+          return;
+        }
+
+        // Obtener datos del cliente incluyendo RUC y crédito
+        $.ajax({
+          url: `/cliente/${clienteId}/detalle/`,
+          type: 'GET',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          success: function(data) {
+            // Mostrar cliente seleccionado
+            const rucDisplay = data.ruc_cedula ? data.ruc_cedula : 'N/A';
+            
+            $("#cliente-nombre-display").text(clienteNombre);
+            $("#cliente-ruc-valor").text(rucDisplay);
+            $("#cliente-ruc-display").show();
+            
+            // Cargar el RUC en el input de edición
+            $("#cliente-ruc-input").val(data.ruc_cedula || '');
+
+            // Mostrar información de crédito si está disponible
+            if (data.credito && data.credito.activo) {
+              const credito = data.credito;
+              const porcentajeUsado = (credito.usado / credito.limite * 100).toFixed(1);
+              
+              $("#credito-disponible").text('$' + credito.disponible.toFixed(2));
+              $("#credito-limite").text('$' + credito.limite.toFixed(2));
+              $("#credito-usado").text('$' + credito.usado.toFixed(2));
+              $("#credito-plazo").text(credito.dias_plazo + ' días');
+              
+              // Actualizar barra de progreso
+              $("#credito-bar").css('width', porcentajeUsado + '%');
+              if (porcentajeUsado > 75) {
+                $("#credito-bar").removeClass('bg-success').addClass('bg-danger');
+              } else if (porcentajeUsado > 50) {
+                $("#credito-bar").removeClass('bg-success').addClass('bg-warning');
+              } else {
+                $("#credito-bar").removeClass('bg-danger bg-warning').addClass('bg-success');
+              }
+
+              // Mostrar cuentas pendientes si las hay
+              if (credito.cuentas_activas > 0) {
+                const pendientesHTML = `<small class="text-warning"><i class="fas fa-exclamation-circle"></i> 
+                  ${credito.cuentas_activas} cuenta(s) pendiente(s) por $${credito.saldo_total_pendiente.toFixed(2)}</small>`;
+                $("#credito-pendientes").html(pendientesHTML);
+              } else {
+                $("#credito-pendientes").html('');
+              }
+              
+              $("#cliente-credito-display").show();
+              
+              // Siempre mostrar opción de método de pago
+              $("#metodo-pago-section").show();
+              if (credito.disponible > 0) {
+                $("#credito-aviso").text(`Crédito disponible: $${credito.disponible.toFixed(2)}`);
+              }
+            } else {
+              $("#cliente-credito-display").hide();
+              // Siempre mostrar métodos de pago
+              $("#metodo-pago-section").show();
+            }
+          },
+          error: function() {
+            console.error('Error al cargar datos del cliente');
+          }
+        });
+      });
+
+      // Editar RUC
+      $(document).on("click", "#btn-editar-ruc", function() {
+        $("#cliente-ruc-display").find("span, button").not("#btn-editar-ruc").hide();
+        $("#cliente-ruc-editar").show();
+        $("#cliente-ruc-input").focus();
+      });
+
+      // Cancelar edición de RUC
+      $(document).on("click", "#btn-cancelar-ruc", function() {
+        $("#cliente-ruc-editar").hide();
+        $("#cliente-ruc-display").find("span, button").show();
+      });
+
+      // Guardar RUC
+      $(document).on("click", "#btn-guardar-ruc", function() {
+        const clienteId = $("#cliente-select").val();
+        const rucCedula = $("#cliente-ruc-input").val().trim();
+
+        if (!clienteId) {
+          showCustomAlert("Error", "Debes seleccionar un cliente", "error");
+          return;
+        }
+
+        if (!rucCedula) {
+          showCustomAlert("Atención", "El RUC/Cédula no puede estar vacío", "warning");
+          return;
+        }
+
+        $.ajax({
+          url: `/cliente/${clienteId}/actualizar-ruc/`,
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ ruc_cedula: rucCedula }),
+          headers: { 'X-CSRFTOKEN': getCookie('csrftoken') },
+          success: function(response) {
+            if (response.success) {
+              $("#cliente-ruc-valor").text(rucCedula);
+              $("#cliente-ruc-editar").hide();
+              $("#cliente-ruc-display").find("span, button").show();
+              showCustomAlert("Éxito", response.message, "success");
+            } else {
+              showCustomAlert("Error", response.error, "error");
+            }
+          },
+          error: function(xhr) {
+            const errorMsg = xhr.responseJSON?.error || "Error al guardar el RUC";
+            showCustomAlert("Error", errorMsg, "error");
+          }
+        });
+      });
+
+      // Cargar consumidor final al inicio
+      $(document).ready(function () {
+        $("#cliente-search-input").trigger("keyup");
+      });
+
+      function resetClienteSeleccionado() {
+        $("#cliente-select").val("");
+        $("#cliente-search-input").val("");
+        $("#cliente-search-results").empty();
+        $("#cliente-nombre-display").text("Consumidor Final");
+        $("#cliente-ruc-valor").text("N/A");
+        $("#cliente-ruc-input").val("");
+        $("#cliente-ruc-display").hide();
+        $("#cliente-ruc-editar").hide();
+        $("#cliente-credito-display").hide();
+        $("#credito-pendientes").html('');
+        $("#credito-aviso").text('');
+        $("#metodo-pago-section").show();
+      }
+
+      function resetEstadoPago() {
+        // Método de pago
+        $('#metodo_pago_selected').val('');
+        $('.metodo-pago-btn').removeClass('active');
+
+        // Limpiar y ocultar campos específicos
+        $('#comprobante-transferencia').val('');
+        $('#numero-cheque').val('');
+        $('#referencia-tarjeta').val('');
+        $('#transferencia-fields').hide();
+        $('#cheque-fields').hide();
+        $('#tarjeta-fields').hide();
+
+        // Reset calculadora de cambio
+        $('#monto-recibido').val('');
+        $('#total-a-pagar-cambio').text('$0.00');
+        $('#cambio-display')
+          .text('$0.00')
+          .css('background-color', '#e8f5e9')
+          .css('color', '#28a745');
+        $('#card-calculadora-cambio').hide();
+      }
+
+      /**
+       * Muestra una alerta personalizada usando SweetAlert2.
+       * @param {string} title - Título de la alerta.
+       * @param {string} text - Contenido de la alerta.
+       * @param {string} icon - Tipo de ícono ('success', 'error', 'warning', 'info', 'question').
+       */
+      function showCustomAlert(title, text, icon) {
+        Swal.fire({
+          title: title,
+          text: text,
+          icon: icon,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+      }
+
+      /**
+       * Muestra un modal de confirmación.
+       * @param {string} title - Título.
+       * @param {string} text - Contenido.
+       * @returns {Promise<boolean>} - Resuelve a true si se confirma, false si se cancela.
+       */
+      function showCustomConfirm(title, text) {
+        return Swal.fire({
+          title: title,
+          text: text,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Sí, continuar",
+          cancelButtonText: "Cancelar",
+        }).then((result) => {
+          return result.isConfirmed;
+        });
+      }
+
+      // ===============================================
+      // 1. VARIABLES Y URLS GLOBALES
+      // ===============================================
+      let carrito = {}; // Almacena {producto_id: {data, cantidad, subtotal}}
+      const TASA_IVA = 0.12;
+      // 🛑 Usar el namespace 'ventas' que definimos en urls.py
+      const URL_BUSQUEDA_NOMBRE = "{% url 'ventas:buscar_nombre_ajax' %}";
+      const URL_BUSQUEDA_CODIGO = "{% url 'ventas:buscar_codigo_ajax' %}";
+      const URL_BUSQUEDA_VIVO = "{% url 'ventas:buscar_productos_vivo' %}";
+      const URL_BUSQUEDA_CLIENTES = "{% url 'ventas:buscar_clientes_vivo' %}";
+      const URL_PROCESAR_VENTA = "{% url 'ventas:procesar_venta_ajax' %}";
+      
+      // Función para obtener el valor de una cookie por nombre
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  let cookie = cookies[i].trim();
+                  // ¿Este string de cookie empieza con el nombre que buscamos?
+                  if (cookie.startsWith(name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+      
+      // Obtener el token CSRF de la cookie
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      // ===============================================
+      // 2. FUNCIONES DE CÁLCULO Y RENDERIZADO
+      // ===============================================
+
+      function calcularTotales() {
+        let subtotalVenta = 0;
+        let ivaTotal = 0;
+        
+        for (const pk in carrito) {
+          const item = carrito[pk];
+          subtotalVenta += item.subtotal;
+          
+          // Calcular IVA individual según tarifa_iva del producto
+          let ivaValue = 0;
+          if (typeof item.tarifa_iva === 'number') {
+            ivaValue = item.tarifa_iva;
+          } else {
+            ivaValue = 15; // Valor por defecto
+          }
+          
+          const ivaItem = (item.subtotal * ivaValue) / 100;
+          ivaTotal += ivaItem;
+        }
+
+        const total = subtotalVenta + ivaTotal;
+
+        // Actualizar displays
+        $("#subtotal-display").text(`$${subtotalVenta.toFixed(2)}`);
+        $("#iva-display").text(`$${ivaTotal.toFixed(2)}`);
+        $("#total-display").text(`$${total.toFixed(2)}`);
+
+        // Habilitar/Deshabilitar botón de pago
+        $("#procesar-venta-btn").prop("disabled", subtotalVenta <= 0);
+      }
+
+      function renderizarCarrito() {
+        const $tbody = $("#carrito-items");
+        $tbody.empty();
+
+        const pks = Object.keys(carrito);
+
+        if (pks.length === 0) {
+          $tbody.append(
+            '<tr><td colspan="6" class="text-center text-muted">Aún no hay productos en el carrito.</td></tr>'
+          );
+        } else {
+          pks.forEach((pk) => {
+            const item = carrito[pk];
+            
+            // Calcular porcentaje de IVA
+            let ivaValue = 0;
+            let ivaText = "0%";
+            
+            if (typeof item.tarifa_iva === 'number') {
+              ivaValue = item.tarifa_iva;
+              ivaText = ivaValue + "%";
+            } else if (item.tarifa_iva === 'NO_OBJETO') {
+              ivaText = "NO OBJ.";
+            } else if (item.tarifa_iva === 'EXENTO') {
+              ivaText = "EXENTO";
+            } else {
+              ivaValue = 15; // Valor por defecto
+              ivaText = "15%";
+            }
+            
+            // Calcular monto de IVA
+            const ivaAmount = (item.subtotal * ivaValue) / 100;
+            
+            const row = `
+                    <tr data-pk="${pk}">
+                        <td>
+                            <input type="number" class="form-control form-control-sm item-cantidad" 
+                                style="width: 60px;"
+                                value="${item.cantidad}" 
+                                min="1" 
+                                max="${item.stock}" 
+                                data-pk="${pk}">
+                        </td>
+                        <td>${item.nombre} <small class="text-muted">(${
+              item.id_producto
+            })</small></td>
+                        <td>$${item.precio.toFixed(2)}</td>
+                        <td><span class="badge badge-info">${ivaText}</span> <br><small>$${ivaAmount.toFixed(2)}</small></td>
+                        <td>$${item.subtotal.toFixed(2)}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger btn-remove-item" data-pk="${pk}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            $tbody.append(row);
+          });
+        }
+        calcularTotales();
+      }
+
+      // 🛑 FUNCIÓN CLAVE PARA AÑADIR/INCREMENTAR PRODUCTO
+      function agregarProductoACarrito(producto) {
+        const pk = producto.id;
+        const stockActual = parseInt(producto.stock);
+
+        if (carrito[pk]) {
+          // Producto ya existe, incrementar cantidad
+          const nuevaCantidad = carrito[pk].cantidad + 1;
+          if (nuevaCantidad <= stockActual) {
+            carrito[pk].cantidad = nuevaCantidad;
+            carrito[pk].subtotal = nuevaCantidad * carrito[pk].precio;
+            showCustomAlert("Añadido", `${producto.nombre} (+1)`, "success");
+          } else {
+            showCustomAlert(
+              "Stock Insuficiente",
+              `Solo hay ${stockActual} unidades de ${producto.nombre} en stock.`,
+              "error"
+            );
+          }
+        } else {
+          // Producto nuevo, añadirlo
+          if (stockActual > 0) {
+            carrito[pk] = {
+              id: pk,
+              id_producto: producto.id_producto, // Campo de ID/código
+              nombre: producto.nombre,
+              precio: parseFloat(producto.precio), // Asegurar que es número
+              stock: stockActual,
+              cantidad: 1,
+              subtotal: parseFloat(producto.precio),
+              tarifa_iva: producto.tarifa_iva || 15 // Incluir tarifa_iva
+            };
+            showCustomAlert(
+              "Producto Añadido",
+              `${producto.nombre} agregado al carrito.`,
+              "success"
+            );
+          } else {
+            showCustomAlert(
+              "Agotado",
+              `${producto.nombre} está agotado.`,
+              "error"
+            );
+          }
+        }
+        renderizarCarrito();
+      }
+
+      // ===============================================
+      // 3. MANEJO DE EVENTOS DE INTERFAZ
+      // ===============================================
+
+      // 3.1. 🛑 BÚSQUEDA EN VIVO POR TECLADO (Mientras escribes)
+      let searchTimeout;
+      $("#producto-search-input").on("keyup", function (e) {
+        const query = $(this).val().trim();
+        const $resultsContainer = $("#search-results-container");
+
+        // Limpiar timeout anterior
+        clearTimeout(searchTimeout);
+
+        // Si presiona Enter, buscar por código
+        if (e.key === "Enter") {
+          $("#btn-scan-barcode").click();
+          return;
+        }
+
+        // Limpiar si la consulta es muy corta
+        if (query.length < 1) {
+          $resultsContainer.empty();
+          return;
+        }
+
+        // Esperar un poco antes de hacer la búsqueda (debounce)
+        searchTimeout = setTimeout(function () {
+          $.ajax({
+            url: URL_BUSQUEDA_VIVO,
+            type: "GET",
+            data: { q: query },
+            dataType: "json",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            success: function (productos) {
+              $resultsContainer.empty();
+
+              if (productos.length > 0) {
+                const resultHtml = `
+                            <div class="alert alert-info p-2 mb-2">
+                                <small><i class="fas fa-search"></i> ${productos.length} resultado(s) encontrado(s)</small>
+                            </div>
+                        `;
+                $resultsContainer.append(resultHtml);
+
+                productos.forEach((producto) => {
+                  const btnHtml = `
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-sm btn-outline-info w-100 btn-add-from-search text-left" 
+                                        data-product-json='${JSON.stringify(
+                                          producto
+                                        )}' title="Click para agregar al carrito">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>${
+                                                  producto.nombre
+                                                }</strong>
+                                                <br>
+                                                <small class="text-muted">ID: ${
+                                                  producto.id_producto
+                                                }</small>
+                                            </div>
+                                            <div class="text-right">
+                                                <div><span class="badge badge-info">$${parseFloat(
+                                                  producto.precio
+                                                ).toFixed(2)}</span></div>
+                                                <div><span class="badge badge-warning">Stock: ${
+                                                  producto.stock
+                                                }</span></div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            `;
+                  $resultsContainer.append(btnHtml);
+                });
+              } else {
+                $resultsContainer.html(
+                  '<p class="text-muted text-center py-2"><small>No se encontraron productos</small></p>'
+                );
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("Error en búsqueda en vivo:", error);
+              $resultsContainer.html(
+                '<p class="text-danger text-center py-2"><small>Error en la búsqueda</small></p>'
+              );
+            },
+          });
+        }, 300); // Esperar 300ms después de dejar de escribir
+      });
+
+      // 3.2. 🛑 CLIC EN RESULTADO DE BÚSQUEDA
+      // Usamos delegación de eventos para los botones que se crean dinámicamente
+      $(document).on("click", ".btn-add-from-search", function () {
+        const productoData = JSON.parse($(this).attr("data-product-json"));
+        agregarProductoACarrito(productoData);
+
+        // Limpiar el contenedor de resultados después de agregar
+        $("#search-results-container").empty();
+        $("#producto-search-input").val("");
+        $("#producto-search-input").focus();
+      });
+
+      // 3.3. 🛑 ESCÁNER DE CÓDIGO DE BARRAS (POST)
+      $("#btn-scan-barcode").on("click", function () {
+        const codigo = $("#producto-search-input").val().trim();
+        if (!codigo) {
+          showCustomAlert(
+            "Atención",
+            "Ingrese un código de barras o ID.",
+            "warning"
+          );
+          return;
+        }
+
+        // Limpiar resultados de búsqueda anteriores
+        $("#search-results-container").empty();
+
+        $.ajax({
+          url: URL_BUSQUEDA_CODIGO,
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ 
+            codigo_busqueda: codigo
+          }),
+          headers: { "X-CSRFTOKEN": CSRF_TOKEN },
+          success: function (data) {
+            if (data.success) {
+              // Los datos vienen de la vista buscar_por_codigo_ajax
+              agregarProductoACarrito({
+                id: data.id,
+                id_producto: data.id_producto,
+                nombre: data.nombre,
+                precio: parseFloat(data.precio), // Viene como string de Django
+                stock: data.stock,
+              });
+              $("#producto-search-input").val("").focus(); // Limpiar y volver a enfocar
+            } else {
+              showCustomAlert("No Encontrado", data.message, "error");
+            }
+          },
+          error: function (xhr) {
+            const errorMsg =
+              xhr.responseJSON && xhr.responseJSON.message
+                ? xhr.responseJSON.message
+                : "Producto no encontrado o error en el escaneo.";
+            showCustomAlert("Error de Búsqueda", errorMsg, "error");
+          },
+        });
+      });
+
+      // 3.4. REMOVER ÍTEMS DEL CARRITO
+      $(document).on("click", ".btn-remove-item", async function () {
+        const pk = $(this).data("pk");
+        const confirmed = await showCustomConfirm(
+          "Confirmar Eliminación",
+          "¿Desea eliminar este producto del carrito?"
+        );
+
+        if (confirmed) {
+          delete carrito[pk];
+          renderizarCarrito();
+          showCustomAlert(
+            "Eliminado",
+            "Producto removido del carrito.",
+            "info"
+          );
+        }
+      });
+
+      // 3.5. ACTUALIZAR CANTIDAD EN EL CARRITO
+      $(document).on("change", ".item-cantidad", function () {
+        const pk = $(this).data("pk");
+        let $input = $(this);
+        let nuevaCantidad = parseInt($input.val());
+        const maxStock = carrito[pk].stock;
+
+        if (isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
+          nuevaCantidad = 1;
+        }
+
+        if (nuevaCantidad > maxStock) {
+          showCustomAlert(
+            "Stock Límite",
+            `Solo hay ${maxStock} unidades de ${carrito[pk].nombre} en stock. Ajustando al máximo.`,
+            "warning"
+          );
+          nuevaCantidad = maxStock;
+          $input.val(nuevaCantidad); // Restablecer el valor en el input
+        }
+
+        carrito[pk].cantidad = nuevaCantidad;
+        carrito[pk].subtotal = nuevaCantidad * carrito[pk].precio;
+        renderizarCarrito();
+      });
+
+      // 3.6. CANCELAR VENTA
+      $("#cancelar-venta-btn, #btnCancelarVenta").on("click", async function () {
+        const confirmed = await showCustomConfirm(
+          "Confirmar Cancelación",
+          "¿Está seguro de que desea cancelar y vaciar el carrito?"
+        );
+
+        if (confirmed) {
+          carrito = {};
+          renderizarCarrito();
+          $("#producto-search-input").val("").focus();
+          resetClienteSeleccionado();
+          resetEstadoPago();
+          showCustomAlert(
+            "Venta Cancelada",
+            "El carrito ha sido vaciado.",
+            "info"
+          );
+        }
+      });
+
+      // 3.7. PROCESAR VENTA (MODAL o LLAMADA FINAL)
+      // ===============================================
+      // 3.6. PROCESAR LA VENTA (AJAX POST)
+      // ===============================================
+      function procesarVentaAjax() {
+        // Preparar datos de la venta
+        const carritoItems = [];
+        for (const pk in carrito) {
+          carritoItems.push({
+            id: pk,
+            nombre: carrito[pk].nombre,
+            cantidad: carrito[pk].cantidad,
+            precio: carrito[pk].precio,
+            subtotal: carrito[pk].subtotal,
+            tarifa_iva: carrito[pk].tarifa_iva,
+          });
+        }
+
+        // Calcular totales con IVA individual por producto
+        let subtotal = 0;
+        let ivaTotal = 0;
+        for (const pk in carrito) {
+          const item = carrito[pk];
+          subtotal += item.subtotal;
+          
+          // Calcular IVA individual según tarifa_iva del producto
+          let ivaValue = 0;
+          if (typeof item.tarifa_iva === 'number') {
+            ivaValue = item.tarifa_iva;
+          } else {
+            ivaValue = 15; // Valor por defecto
+          }
+          
+          const ivaItem = (item.subtotal * ivaValue) / 100;
+          ivaTotal += ivaItem;
+        }
+        
+        const total = subtotal + ivaTotal;
+
+        const cliente_id = $("#cliente-select").val();
+
+        $.ajax({
+          url: URL_PROCESAR_VENTA,
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            carrito: carritoItems,
+            total: total,
+            cliente_id: cliente_id || null,
+          }),
+          headers: { "X-CSRFTOKEN": CSRF_TOKEN },
+          success: function (data) {
+            if (data.success) {
+              showCustomAlert(
+                "¡Éxito!",
+                `Venta #${data.venta_id} registrada correctamente.`,
+                "success"
+              );
+
+              // Limpiar carrito
+              carrito = {};
+              renderizarCarrito();
+              $("#producto-search-input").val("").focus();
+              resetClienteSeleccionado();
+              resetEstadoPago();
+            } else {
+              showCustomAlert(
+                "Error",
+                data.error || "Error al procesar la venta",
+                "error"
+              );
+            }
+          },
+          error: function (xhr) {
+            let errorMsg = "Error en el servidor";
+            try {
+              const response = JSON.parse(xhr.responseText);
+              errorMsg = response.error || errorMsg;
+            } catch (e) {}
+            showCustomAlert("Error de Procesamiento", errorMsg, "error");
+          },
+        });
+      }
+
+      $("#procesar-venta-btn").on("click", function () {
+        // Validar que hay productos en el carrito
+        if (Object.keys(carrito).length === 0) {
+          showCustomAlert(
+            "Carrito Vacío",
+            "Agrega productos antes de procesar la venta.",
+            "warning"
+          );
+          return;
+        }
+
+        // Calcular total con IVA individual por producto
+        let subtotal = 0;
+        let ivaTotal = 0;
+        for (const pk in carrito) {
+          const item = carrito[pk];
+          subtotal += item.subtotal;
+          
+          // Calcular IVA individual según tarifa_iva del producto
+          let ivaValue = 0;
+          if (typeof item.tarifa_iva === 'number') {
+            ivaValue = item.tarifa_iva;
+          } else {
+            ivaValue = 15; // Valor por defecto
+          }
+          
+          const ivaItem = (item.subtotal * ivaValue) / 100;
+          ivaTotal += ivaItem;
+        }
+        
+        const total = subtotal + ivaTotal;
+
+        // Pedir confirmación
+        showCustomConfirm(
+          "Confirmar Venta",
+          `El total a pagar es $${total.toFixed(2)}. ¿Confirmar la transacción?`
+        ).then((confirmed) => {
+          if (confirmed) {
+            // Procesar la venta AJAX
+            procesarVentaAjax();
+          }
+        });
+      });
+
+      // Inicializar totales al cargar la página
+      $(document).ready(function () {
+        calcularTotales();
+        resetEstadoPago();
+        $("#producto-search-input").focus();
+      });
+
+      // ... (Tu código AJAX para procesar_venta_ajax) ...
+
+      $('#btnProcesarPago').on('click', function() {
+        // VALIDACIÓN: Verificar que hay productos en el carrito
+        if (Object.keys(carrito).length === 0) {
+          showCustomAlert(
+            "⚠️ Carrito Vacío",
+            "Debes agregar al menos un producto antes de procesar el pago",
+            "warning"
+          );
+          return;
+        }
+
+        // VALIDACIÓN: Verificar que se haya seleccionado un método de pago
+        const metodoPagoSeleccionado = $('#metodo_pago_selected').val();
+        if (!metodoPagoSeleccionado || metodoPagoSeleccionado === '') {
+          showCustomAlert(
+            "❌ ¡DEBES SELECCIONAR UN MÉTODO DE PAGO!",
+            "Selecciona uno de los siguientes métodos:\n\n💵 Efectivo\n🔄 Transferencia\n📋 Cheque\n💳 Tarjeta\n🤝 Crédito",
+            "error"
+          );
+          return;
+        }
+
+        // VALIDACIÓN: Verificar comprobante/referencia según método de pago
+        if (metodoPagoSeleccionado === 'transferencia') {
+          const comprobanteTransferencia = $('#comprobante-transferencia').val().trim();
+          if (!comprobanteTransferencia) {
+            showCustomAlert(
+              "⚠️ Falta Comprobante de Transferencia",
+              "Debes ingresar el número de comprobante o referencia de la transferencia bancaria",
+              "warning"
+            );
+            $('#comprobante-transferencia').focus();
+            return;
+          }
+        } else if (metodoPagoSeleccionado === 'cheque') {
+          const numeroCheque = $('#numero-cheque').val().trim();
+          if (!numeroCheque) {
+            showCustomAlert(
+              "⚠️ Falta Número de Cheque",
+              "Debes ingresar el número de cheque",
+              "warning"
+            );
+            $('#numero-cheque').focus();
+            return;
+          }
+        } else if (metodoPagoSeleccionado === 'tarjeta') {
+          const referenciaTarjeta = $('#referencia-tarjeta').val().trim();
+          if (!referenciaTarjeta) {
+            showCustomAlert(
+              "⚠️ Falta Referencia de Tarjeta",
+              "Debes ingresar el número de autorización o referencia de la tarjeta",
+              "warning"
+            );
+            $('#referencia-tarjeta').focus();
+            return;
+          }
+        }
+
+        // 1. Recoger todos los datos (carrito, total, etc.)
+        const carritoItems = [];
+        for (const pk in carrito) {
+          carritoItems.push({
+            id: pk,
+            nombre: carrito[pk].nombre,
+            cantidad: carrito[pk].cantidad,
+            precio: carrito[pk].precio,
+            subtotal: carrito[pk].subtotal,
+            tarifa_iva: carrito[pk].tarifa_iva,
+          });
+        }
+
+        // Calcular totales con IVA individual por producto
+        let subtotal = 0;
+        let ivaTotal = 0;
+        for (const pk in carrito) {
+          const item = carrito[pk];
+          subtotal += item.subtotal;
+          
+          // Calcular IVA individual según tarifa_iva del producto
+          let ivaValue = 0;
+          if (typeof item.tarifa_iva === 'number') {
+            ivaValue = item.tarifa_iva;
+          } else {
+            ivaValue = 15; // Valor por defecto
+          }
+          
+          const ivaItem = (item.subtotal * ivaValue) / 100;
+          ivaTotal += ivaItem;
+        }
+        
+        const total = subtotal + ivaTotal;
+
+        // 2. Obtener el tipo de documento seleccionado
+        const tipoDocumento = $('#tipo_documento').val();
+        const cliente_id = $("#cliente-select").val();
+        const clienteNombre = $("#cliente-nombre-display").text();
+        
+        // Obtener el método de pago seleccionado del campo oculto
+        const esCredito = metodoPagoSeleccionado === 'credito' && cliente_id;
+
+        // Obtener información de crédito si aplica
+        let creditoInfo = null;
+        if (esCredito) {
+          const creditoDisplay = $("#cliente-credito-display");
+          if (creditoDisplay.is(":visible")) {
+            creditoInfo = {
+              limite: parseFloat($("#credito-limite").text().replace('$', '')),
+              disponible: parseFloat($("#credito-disponible").text().replace('$', '')),
+              usado: parseFloat($("#credito-usado").text().replace('$', '')),
+              plazo: parseInt($("#credito-plazo").text())
+            };
+
+            // Validar que el total no exceda el crédito disponible
+            if (total > creditoInfo.disponible) {
+              showCustomAlert(
+                "❌ Crédito Insuficiente",
+                `Total: $${total.toFixed(2)}\nCrédito disponible: $${creditoInfo.disponible.toFixed(2)}`,
+                "error"
+              );
+              return;
+            }
+          }
+        }
+
+        // 🌟 PASO CRÍTICO: Obtener el token CSRF
+        const csrftoken = getCookie('csrftoken');
+        
+        // Preparar datos del comprobante según el método de pago
+        let datosComprobante = {};
+        if (metodoPagoSeleccionado === 'transferencia') {
+          datosComprobante.numero_comprobante = $('#comprobante-transferencia').val().trim();
+        } else if (metodoPagoSeleccionado === 'cheque') {
+          datosComprobante.numero_cheque = $('#numero-cheque').val().trim();
+        } else if (metodoPagoSeleccionado === 'tarjeta') {
+          datosComprobante.referencia_tarjeta = $('#referencia-tarjeta').val().trim();
+        }
+
+        // 3. Llamada AJAX a procesar_venta_ajax
+        $.ajax({
+            url: '{% url "ventas:procesar_venta_ajax" %}',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+              carrito: carritoItems,
+              total: total,
+              cliente_id: cliente_id || null,
+              metodo_pago: metodoPagoSeleccionado,  // Enviar el método de pago seleccionado
+              es_credito: esCredito,
+              credito_info: creditoInfo,
+              datos_comprobante: datosComprobante  // Enviar los datos del comprobante
+            }),
+            
+            // 🌟 PASO CRÍTICO: Incluir el header del token
+            headers: {
+                'X-CSRFTOKEN': csrftoken 
+            },
+            
+            success: function(response) {
+                if (response.success) {
+                    const ventaId = response.venta_id;
+                    const tipoVenta = esCredito ? '💳 Crédito' : '💵 Efectivo';
+                    
+                    // 🌟 ACCIÓN DE VISTA: Abrir la nueva ventana de factura
+                    let facturaUrl = '';
+
+                    if (tipoDocumento === 'FACTURA_SRI') {
+                        // Ruta para generar la factura SRI (PDF/HTML grande)
+                        facturaUrl = '{% url "ventas:generar_factura_sri" 0 %}'.replace('0', ventaId);
+                    } else { // TICKET_SIMPLE
+                        // Ruta para generar el ticket simple (Formato pequeño)
+                        facturaUrl = '{% url "ventas:generar_ticket" 0 %}'.replace('0', ventaId);
+                    }
+                    
+                    // Abrir en una nueva pestaña (o ventana de impresión)
+                    window.open(facturaUrl, '_blank');
+                    
+                    // 4. Limpiar el carrito y reiniciar la vista
+                    carrito = {};
+                    renderizarCarrito();
+                    $("#producto-search-input").val("").focus();
+                    resetClienteSeleccionado();
+                    resetEstadoPago();
+                    
+                    showCustomAlert(
+                        "¡Éxito!",
+                        `Venta #${ventaId} registrada (${tipoVenta})`,
+                        "success"
+                    );
+                } else {
+                    showCustomAlert(
+                        "Error",
+                        response.error || 'Error al procesar venta',
+                        "error"
+                    );
+                }
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
+                showCustomAlert(
+                    "Error de Conexión",
+                    'Error de conexión o servidor. Revisa la consola para detalles.',
+                    "error"
+                );
+            }
+        });
+      });
+
+      // ========== MANEJAR MÉTODOS DE PAGO ==========
+      
+      // Manejar clic en botones de métodos de pago (Efectivo, Transferencia, Cheque, Tarjeta)
+      $('.metodo-pago-btn').on('click', function() {
+        const metodo = $(this).data('metodo');
+        $('#metodo_pago_selected').val(metodo);
+        
+        // Remover clase active de todos los botones
+        $('.metodo-pago-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        // Ocultar todos los campos específicos de método
+        $('#transferencia-fields').slideUp(200);
+        $('#cheque-fields').slideUp(200);
+        $('#tarjeta-fields').slideUp(200);
+        
+        // Mostrar/Ocultar calculadora de cambio si es efectivo
+        if (metodo === 'efectivo') {
+          $('#card-calculadora-cambio').slideDown(300);
+          $('#monto-recibido').focus();
+        } else {
+          $('#card-calculadora-cambio').slideUp(300);
+        }
+        
+        // Mostrar campos específicos según el método seleccionado
+        if (metodo === 'transferencia') {
+          $('#transferencia-fields').slideDown(300);
+          $('#comprobante-transferencia').focus();
+        } else if (metodo === 'cheque') {
+          $('#cheque-fields').slideDown(300);
+          $('#numero-cheque').focus();
+        } else if (metodo === 'tarjeta') {
+          $('#tarjeta-fields').slideDown(300);
+          $('#referencia-tarjeta').focus();
+        }
+        
+        // Mostrar notificación de método seleccionado
+        let iconoMetodo = '';
+        let textoMetodo = '';
+        
+        switch(metodo) {
+          case 'efectivo':
+            iconoMetodo = '💵';
+            textoMetodo = 'Pago en Efectivo';
+            break;
+          case 'transferencia':
+            iconoMetodo = '🏦';
+            textoMetodo = 'Pago por Transferencia';
+            break;
+          case 'cheque':
+            iconoMetodo = '📄';
+            textoMetodo = 'Pago con Cheque';
+            break;
+          case 'tarjeta':
+            iconoMetodo = '💳';
+            textoMetodo = 'Pago con Tarjeta';
+            break;
+        }
+        
+        showCustomAlert('✓ ' + textoMetodo, `Método de pago seleccionado: ${iconoMetodo}`, 'success');
+      });
+      
+      // NO establecer método de pago por defecto - el usuario DEBE seleccionar uno
+      // Esto fuerza la validación de método de pago
+    </script>
+
+    <!-- JavaScript para Calculadora de Cambio -->
+    <script>
+      // Función para actualizar el cambio
+      function actualizarCambio() {
+        const totalElement = $('#total-display').text();
+        const total = parseFloat(totalElement.replace('$', '').replace(',', ''));
+        const montoRecibido = parseFloat($('#monto-recibido').val()) || 0;
+        const cambio = montoRecibido - total;
+
+        // Actualizar display del total
+        $('#total-a-pagar-cambio').text('$' + total.toFixed(2));
+
+        // Actualizar display del cambio con color
+        const cambioDisplay = $('#cambio-display');
+        cambioDisplay.text('$' + cambio.toFixed(2));
+
+        // Cambiar color según el cambio
+        if (cambio < 0) {
+          cambioDisplay.css('background-color', '#ffebee').css('color', '#c62828'); // Rojo - Falta dinero
+        } else if (cambio === 0) {
+          cambioDisplay.css('background-color', '#e8f5e9').css('color', '#28a745'); // Verde - Monto exacto
+        } else {
+          cambioDisplay.css('background-color', '#e3f2fd').css('color', '#1565c0'); // Azul - Cambio positivo
+        }
+      }
+
+      // Evento cuando el usuario escribe el monto recibido
+      $('#monto-recibido').on('input', function() {
+        actualizarCambio();
+      });
+
+      // Botones de denominaciones rápidas
+      $('.btn-denominacion').on('click', function(e) {
+        e.preventDefault();
+        const valor = $(this).data('valor');
+        const totalElement = $('#total-display').text();
+        const total = parseFloat(totalElement.replace('$', '').replace(',', ''));
+
+        if (valor === 'exact') {
+          // Monto exacto
+          $('#monto-recibido').val(total.toFixed(2));
+        } else if (valor === 'round') {
+          // Redondear al siguiente billete
+          let redondeado = Math.ceil(total);
+          // Si ya es un número exacto, sumarle el menor incremento
+          if (redondeado === total) {
+            redondeado = total + 1;
+          }
+          $('#monto-recibido').val(redondeado.toFixed(2));
+        } else {
+          // Agregar a lo que ya hay
+          const actual = parseFloat($('#monto-recibido').val()) || 0;
+          const nuevoValor = actual + parseFloat(valor);
+          $('#monto-recibido').val(nuevoValor.toFixed(2));
+        }
+        
+        actualizarCambio();
+        $('#monto-recibido').focus();
+      });
+
+      // Actualizar cambio cuando se actualiza el total del carrito
+      const observer = new MutationObserver(function(mutations) {
+        actualizarCambio();
+      });
+
+      observer.observe(document.getElementById('total-display'), {
+        characterData: true,
+        childList: true,
+        subtree: true
+      });
+    </script>
+    
+    <!-- Estilos para métodos de pago -->
+    <style>
+      .metodo-pago-btn {
+        transition: all 0.3s ease;
+        font-weight: 600;
+        border-width: 2px !important;
+        font-size: 1rem;
+        padding: 12px 20px;
+      }
+      
+      .metodo-pago-btn.active {
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3) !important;
+        transform: translateY(-3px);
+      }
+      
+      .metodo-pago-btn.active.btn-success {
+        background-color: #1e7e34 !important;
+        border-color: #1e7e34 !important;
+        color: white !important;
+      }
+      
+      .metodo-pago-btn.active.btn-primary {
+        background-color: #0056b3 !important;
+        border-color: #0056b3 !important;
+        color: white !important;
+      }
+      
+      .metodo-pago-btn.active.btn-warning {
+        background-color: #e0a800 !important;
+        border-color: #e0a800 !important;
+        color: #333 !important;
+      }
+      
+      .metodo-pago-btn.active.btn-info {
+        background-color: #0c5460 !important;
+        border-color: #0c5460 !important;
+        color: white !important;
+      }
+      
+      #btn-credito-venta {
+        margin-top: 15px;
+        font-weight: 600;
+        border-width: 2px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        padding: 12px 20px;
+      }
+      
+      #btn-credito-venta:hover {
+        background-color: #138496;
+        border-color: #138496;
+        box-shadow: 0 0 10px rgba(23, 162, 184, 0.3);
+        transform: translateY(-2px);
+      }
+    </style>
+    {% endblock extra_js %}

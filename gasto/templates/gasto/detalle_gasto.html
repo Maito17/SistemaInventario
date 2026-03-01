@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle Gasto #{{ gasto.id_gasto }} - Sistema POS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .detail-card.admin {
+        border-left-color: #dc3545;
+    }
+    
+    .detail-card.venta {
+        border-left-color: #ffc107;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 1rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .detail-value {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .gasto-monto {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+    
+    .badge-estado {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 mt-4">
+        <div class="col-md-8">
+            <h1 class="page-title">
+                <i class="fas fa-receipt"></i> Detalle del Gasto #{{ gasto.id_gasto }}
+            </h1>
+            <p class="text-muted">Información completa del gasto registrado</p>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="{% url 'gasto:editar_gasto' gasto.id_gasto %}" class="btn btn-warning mr-2">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contenido Principal -->
+        <div class="col-md-8">
+            <!-- Información General -->
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="fas fa-info-circle"></i> Información General</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-label">Descripción</div>
+                        <div class="detail-value">{{ gasto.descripcion }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-label">Tipo de Gasto</div>
+                        <div class="detail-value">
+                            {% if gasto.tipo_gasto.nombre == 'ADMINISTRACION' %}
+                                <span class="badge badge-danger"><i class="fas fa-briefcase"></i> Administración</span>
+                            {% elif gasto.tipo_gasto.nombre == 'VENTA' %}
+                                <span class="badge badge-warning"><i class="fas fa-chart-line"></i> Venta</span>
+                            {% else %}
+                                <span class="badge badge-secondary"><i class="fas fa-tag"></i> Otro</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-label">Monto</div>
+                        <div class="gasto-monto">${{ gasto.monto }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-label">Estado</div>
+                        <div class="detail-value">
+                            {% if gasto.estado == 'PENDIENTE' %}
+                                <span class="badge badge-estado badge-secondary"><i class="fas fa-clock"></i> Pendiente</span>
+                            {% elif gasto.estado == 'APROBADO' %}
+                                <span class="badge badge-estado badge-success"><i class="fas fa-check"></i> Aprobado</span>
+                            {% elif gasto.estado == 'PAGADO' %}
+                                <span class="badge badge-estado badge-primary"><i class="fas fa-money-bill"></i> Pagado</span>
+                            {% else %}
+                                <span class="badge badge-estado badge-danger"><i class="fas fa-ban"></i> Rechazado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="fas fa-calendar"></i> Fechas</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-label">Fecha del Gasto</div>
+                        <div class="detail-value">
+                            <i class="fas fa-calendar-day"></i> {{ gasto.fecha_gasto|date:"d \d\e F \d\e Y" }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-label">Fecha de Pago</div>
+                        <div class="detail-value">
+                            {% if gasto.fecha_pago %}
+                                <i class="fas fa-check-circle text-success"></i> {{ gasto.fecha_pago|date:"d \d\e F \d\e Y" }}
+                            {% else %}
+                                <span class="text-muted"><i class="fas fa-times-circle"></i> No registrada</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles Específicos -->
+            {% if gasto.tipo_gasto.nombre == 'ADMINISTRACION' and gasto.detalle_admin %}
+            <div class="detail-card admin">
+                <h5 class="mb-3"><i class="fas fa-briefcase"></i> Detalles de Administración</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-label">Concepto</div>
+                        <div class="detail-value">{{ gasto.detalle_admin.get_concepto_display }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-label">Responsable</div>
+                        <div class="detail-value">{{ gasto.detalle_admin.responsable|default:"No especificado" }}</div>
+                    </div>
+                </div>
+            </div>
+            {% elif gasto.tipo_gasto.nombre == 'VENTA' and gasto.detalle_venta %}
+            <div class="detail-card venta">
+                <h5 class="mb-3"><i class="fas fa-chart-line"></i> Detalles de Venta</h5>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="detail-label">Concepto</div>
+                        <div class="detail-value">{{ gasto.detalle_venta.get_concepto_display }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-label">Beneficiario</div>
+                        <div class="detail-value">{{ gasto.detalle_venta.beneficiario|default:"No especificado" }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-label">Canal</div>
+                        <div class="detail-value">{{ gasto.detalle_venta.canal|default:"No especificado" }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notas -->
+            {% if gasto.notas %}
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="fas fa-sticky-note"></i> Notas</h5>
+                <div class="detail-value">
+                    {{ gasto.notas|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Resumen Rápido -->
+            <div class="detail-card" style="border-left-color: #28a745;">
+                <h5 class="mb-3"><i class="fas fa-chart-pie"></i> Resumen</h5>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 0.5rem; text-align: center; margin-bottom: 1rem;">
+                    <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.5rem;">MONTO TOTAL</div>
+                    <div style="font-size: 2rem; font-weight: 700;">${{ gasto.monto }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="detail-label">ID</div>
+                    <div class="detail-value"><code>#{{ gasto.id_gasto }}</code></div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="detail-label">Creado</div>
+                    <div class="detail-value text-muted small">
+                        <i class="fas fa-clock"></i> {{ gasto.fecha_creacion|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="detail-label">Última Actualización</div>
+                    <div class="detail-value text-muted small">
+                        <i class="fas fa-sync"></i> {{ gasto.fecha_actualizacion|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="fas fa-cog"></i> Acciones</h5>
+                
+                <a href="{% url 'gasto:editar_gasto' gasto.id_gasto %}" class="btn btn-warning btn-block mb-2">
+                    <i class="fas fa-edit"></i> Editar Gasto
+                </a>
+                <a href="{% url 'gasto:eliminar_gasto' gasto.id_gasto %}" class="btn btn-danger btn-block">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+            </div>
+
+            <!-- Información de Auditoría -->
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="fas fa-history"></i> Auditoría</h5>
+                
+                <small class="text-muted">
+                    <p class="mb-2">
+                        <i class="fas fa-plus-circle"></i><br>
+                        <strong>Creado:</strong><br>
+                        {{ gasto.fecha_creacion|date:"d/m/Y H:i:s" }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-pencil-alt"></i><br>
+                        <strong>Modificado:</strong><br>
+                        {{ gasto.fecha_actualizacion|date:"d/m/Y H:i:s" }}
+                    </p>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Personal - Estado{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">
+        <i class="fas fa-users"></i> Estado del Personal
+    </h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            Estado de Asistencia y Caja
+        </h3>
+        <div class="card-tools">
+            <span class="badge badge-primary">
+                Total: {{ personal|length }} trabajadores
+            </span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="tabla-personal">
+                <thead class="bg-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>
+                            <i class="fas fa-sign-in-alt"></i> Entrada
+                        </th>
+                        <th>
+                            <i class="fas fa-sign-out-alt"></i> Salida
+                        </th>
+                        <th>
+                            <i class="fas fa-circle"></i> Estado
+                        </th>
+                        <th>
+                            <i class="fas fa-cash-register"></i> Caja
+                        </th>
+                        <th>Monto Inicial</th>
+                        <th>Estado Caja</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in personal %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.usuario.username }}</strong>
+                        </td>
+                        <td>
+                            {{ item.usuario.first_name }} {{ item.usuario.last_name }}
+                        </td>
+                        <td>
+                            {% if item.ultimo_login %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check"></i> {{ item.ultimo_login.fecha_hora|time:"H:i:s" }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-danger">
+                                    <i class="fas fa-times"></i> Sin registrar
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.ultimo_logout %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-check"></i> {{ item.ultimo_logout.fecha_hora|time:"H:i:s" }}
+                                </span>
+                            {% elif item.ultimo_login %}
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-hourglass-half"></i> Pendiente
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.sesion_activa %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-circle"></i> En línea
+                                </span>
+                            {% elif item.ultimo_login %}
+                                <span class="badge badge-secondary">
+                                    <i class="fas fa-circle"></i> Offline
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary">
+                                    <i class="fas fa-circle"></i> No conectado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.estado_caja %}
+                                {% if item.estado_caja.estado == 'ABIERTA' %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-unlock"></i> Abierta
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-dark">
+                                        <i class="fas fa-lock"></i> Cerrada
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-secondary">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.estado_caja %}
+                                ${{ item.estado_caja.monto_inicial|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.estado_caja %}
+                                {% if item.estado_caja.estado == 'ABIERTA' %}
+                                    <span class="badge badge-warning">Activa</span>
+                                {% else %}
+                                    {% if item.estado_caja.monto_cierre %}
+                                        ${{ item.estado_caja.monto_cierre|floatformat:2 }}
+                                    {% else %}
+                                        <span class="badge badge-secondary">Cerrada</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-secondary">Sin caja</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'usuarios:registro_acceso_usuario' item.usuario.id %}" class="btn btn-sm btn-primary" 
+                               title="Ver historial de acceso">
+                                <i class="fas fa-history"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox"></i> No hay personal registrado
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Gestión de Usuarios
+        </a>
+        <a href="{% url 'usuarios:registro_acceso' %}" class="btn btn-info">
+            <i class="fas fa-history"></i> Ver Historial de Accesos
+        </a>
+        <button type="button" class="btn btn-primary" onclick="location.reload();" style="float: right;">
+            <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+{% endblock content %}

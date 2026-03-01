@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Aprobar Solicitud de Crédito{% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Aprobar Solicitud #{{ solicitud.id }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_solicitudes_credito' %}">Solicitudes</a></li>
+          <li class="breadcrumb-item active">Aprobar</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card card-success">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-check-circle"></i> Aprobar Solicitud de Crédito
+            </h3>
+          </div>
+          
+          <!-- Información de la solicitud -->
+          <div class="card-body border-bottom bg-light">
+            <div class="row mb-2">
+              <div class="col-md-6">
+                <strong>Cliente:</strong> {{ solicitud.cliente.nombre }}
+              </div>
+              <div class="col-md-6">
+                <strong>Monto:</strong> 
+                <span class="badge badge-success">${{ solicitud.monto_solicitado|floatformat:2 }}</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <strong>Plazo:</strong> {{ solicitud.plazo_dias }} días
+              </div>
+              <div class="col-md-6">
+                <strong>Fecha Solicitud:</strong> {{ solicitud.fecha_solicitud|date:"d/m/Y" }}
+              </div>
+            </div>
+          </div>
+          
+          <form method="POST">
+            {% csrf_token %}
+            
+            <div class="card-body">
+              <div class="form-group">
+                <label for="observaciones">
+                  <i class="fas fa-comment"></i> Observaciones (Opcional)
+                </label>
+                <textarea name="observaciones" 
+                          id="observaciones" 
+                          class="form-control" 
+                          rows="5" 
+                          placeholder="Registra cualquier observación sobre la aprobación..."></textarea>
+              </div>
+              
+              <div class="alert alert-success">
+                <strong><i class="fas fa-check"></i> Al aprobar:</strong>
+                <ul>
+                  <li>El cliente podrá realizar compras a crédito</li>
+                  <li>Se registrará quién aprobó y cuándo</li>
+                  <li>El crédito estará disponible inmediatamente</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="card-footer">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-circle"></i> Aprobar Solicitud
+              </button>
+              <a href="{% url 'finanzas:detalle_solicitud_credito' solicitud.id %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

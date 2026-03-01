@@ -1,0 +1,302 @@
+<style>
+.form-section, .form-section-contact, .form-section-email {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px #0002;
+}
+.form-section h3, .form-section-contact h3, .form-section-email h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222;
+}
+.form-row, .form-row-contact, .form-row-email {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.form-group, .form-group-contact, .form-group-email {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+.form-group label, .form-group-contact label, .form-group-email label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 0.95em;
+}
+.form-group input, .form-group-contact input, .form-group-email input,
+.form-group textarea, .form-group-contact textarea, .form-group-email textarea,
+.form-group select, .form-group-contact select, .form-group-email select {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 0.95em;
+  background: #fff;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.form-group input:focus, .form-group-contact input:focus, .form-group-email input:focus,
+.form-group textarea:focus, .form-group-contact textarea:focus, .form-group-email textarea:focus,
+.form-group select:focus, .form-group-contact select:focus, .form-group-email select:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+.required-star {
+  color: #e53935;
+  font-weight: bold;
+}
+.custom-file-upload {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px 18px;
+  background: #fafbfc;
+}
+.custom-file-upload label {
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 4px;
+  font-size: 0.95em;
+}
+.custom-file-upload .desc {
+  color: #666;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+}
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+.custom-file-upload .file-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+.custom-file-upload .file-btn:hover {
+  background: #125ea7;
+}
+.custom-file-upload .file-info {
+  color: #777;
+  font-size: 0.88em;
+  margin-bottom: 4px;
+}
+.custom-file-upload .file-types {
+  font-size: 0.88em;
+  color: #999;
+}
+</style>
+<div class="form-section">
+  <h3><i class="fas fa-info-circle text-primary"></i> Información Básica</h3>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.nombre_empresa.id_for_label }}">{{ form.nombre_empresa.label }} <span class="required-star">*</span></label>
+      {{ form.nombre_empresa }}
+      {% if form.nombre_empresa.errors %}<small class="form-text text-danger">{{ form.nombre_empresa.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.razon_social.id_for_label }}">{{ form.razon_social.label }}</label>
+      {{ form.razon_social }}
+      {% if form.razon_social.errors %}<small class="form-text text-danger">{{ form.razon_social.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.nombre_comercial.id_for_label }}">{{ form.nombre_comercial.label }}</label>
+      {{ form.nombre_comercial }}
+      {% if form.nombre_comercial.errors %}<small class="form-text text-danger">{{ form.nombre_comercial.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.ruc.id_for_label }}">{{ form.ruc.label }} <span class="required-star">*</span></label>
+      {{ form.ruc }}
+      {% if form.ruc.errors %}<small class="form-text text-danger">{{ form.ruc.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.codigo_establecimiento_emisor.id_for_label }}">{{ form.codigo_establecimiento_emisor.label }}</label>
+      {{ form.codigo_establecimiento_emisor }}
+      {% if form.codigo_establecimiento_emisor.errors %}<small class="form-text text-danger">{{ form.codigo_establecimiento_emisor.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.codigo_punto_emision.id_for_label }}">{{ form.codigo_punto_emision.label }}</label>
+      {{ form.codigo_punto_emision }}
+      {% if form.codigo_punto_emision.errors %}<small class="form-text text-danger">{{ form.codigo_punto_emision.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.contribuyente_especial.id_for_label }}">{{ form.contribuyente_especial.label }}</label>
+      {{ form.contribuyente_especial }}
+      {% if form.contribuyente_especial.errors %}<small class="form-text text-danger">{{ form.contribuyente_especial.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.obligado_contabilidad.id_for_label }}">{{ form.obligado_contabilidad.label }}</label>
+      {{ form.obligado_contabilidad }}
+      {% if form.obligado_contabilidad.errors %}<small class="form-text text-danger">{{ form.obligado_contabilidad.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.tipo_ambiente.id_for_label }}">{{ form.tipo_ambiente.label }}</label>
+      {{ form.tipo_ambiente }}
+      {% if form.tipo_ambiente.errors %}<small class="form-text text-danger">{{ form.tipo_ambiente.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="{{ form.tipo_emision.id_for_label }}">{{ form.tipo_emision.label }}</label>
+      {{ form.tipo_emision }}
+      {% if form.tipo_emision.errors %}<small class="form-text text-danger">{{ form.tipo_emision.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.iva_porcentaje.id_for_label }}">{{ form.iva_porcentaje.label }}</label>
+      {{ form.iva_porcentaje }}
+      {% if form.iva_porcentaje.errors %}<small class="form-text text-danger">{{ form.iva_porcentaje.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group">
+      <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+      {{ form.direccion }}
+      {% if form.direccion.errors %}<small class="form-text text-danger">{{ form.direccion.errors }}</small>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="form-section-contact">
+  <h3><i class="fas fa-phone text-info"></i> Información de Contacto</h3>
+  <div class="form-row-contact">
+    <div class="form-group-contact">
+      <label for="{{ form.telefono_celular.id_for_label }}">{{ form.telefono_celular.label }}</label>
+      {{ form.telefono_celular }}
+      {% if form.telefono_celular.errors %}<small class="form-text text-danger">{{ form.telefono_celular.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group-contact">
+      <label for="{{ form.telefono_convencional.id_for_label }}">{{ form.telefono_convencional.label }}</label>
+      {{ form.telefono_convencional }}
+      {% if form.telefono_convencional.errors %}<small class="form-text text-danger">{{ form.telefono_convencional.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group-contact">
+      <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+      {{ form.email }}
+      {% if form.email.errors %}<small class="form-text text-danger">{{ form.email.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row-contact">
+    <div class="form-group-contact" style="flex: 1;">
+      <label for="{{ form.sitio_web.id_for_label }}">{{ form.sitio_web.label }}</label>
+      {{ form.sitio_web }}
+      {% if form.sitio_web.errors %}<small class="form-text text-danger">{{ form.sitio_web.errors }}</small>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="form-section-contact">
+  <h3><i class="fas fa-image text-warning"></i> Branding</h3>
+  <div class="form-row-contact">
+    <div class="form-group-contact">
+      <label for="{{ form.logo.id_for_label }}">Logo</label>
+      {% if config and config.logo %}<p style="font-size: 0.9em; color: #666; margin-bottom: 8px;">Logo actual:</p>
+      <img src="{{ config.logo.url }}" alt="Logo" style="max-width: 150px; max-height: 120px; margin-bottom: 8px; border-radius: 4px;">{% endif %}
+      {{ form.logo }}
+      <small style="font-size: 0.85em; color: #888;">PNG, JPG, GIF máx. 5MB</small>
+      {% if form.logo.errors %}<small class="form-text text-danger">{{ form.logo.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group-contact">
+      <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+      {{ form.descripcion }}
+      {% if form.descripcion.errors %}<small class="form-text text-danger">{{ form.descripcion.errors }}</small>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="form-section-contact">
+  <h3><i class="fas fa-certificate text-success"></i> Firma Electrónica SRI (Ecuador)</h3>
+  <div style="background-color: #e8f4f8; padding: 14px 16px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid #17a2b8;">
+    <strong style="display: block; margin-bottom: 8px; color: #0c5460;">¿Qué es la Firma Electrónica?</strong>
+    <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #0c5460;">La firma electrónica es un archivo digital (.p12 o .pfx) emitido por entidad certificadora autorizada en Ecuador.</p>
+    <ul style="margin: 8px 0; padding-left: 20px; font-size: 0.9em; color: #0c5460;">
+      <li>Obligatoria para emitir comprobantes electrónicos ante el SRI</li>
+      <li>Debes cargar tu archivo vigente para que el sistema pueda firmar facturas</li>
+      <li>Si no tienes una, obtén en Banco Central, Security Data, ANF, etc.</li>
+    </ul>
+  </div>
+  <div class="form-row-contact">
+    <div class="form-group-contact" style="min-width: 300px;">
+      <div class="custom-file-upload">
+        <label for="id_clave_firma_electronica">Seleccionar archivo P12/PFX:</label>
+        <div class="desc">Cargue o arrastre su archivo de firma electrónica</div>
+        {% if form.clave_firma_electronica.value %}<div style="font-size: 0.88em; margin: 8px 0; color: #333;"><strong>Actual:</strong> <a href="{{ form.clave_firma_electronica.value.url }}" target="_blank" style="color: #1976d2;">{{ form.clave_firma_electronica.value.name }}</a></div>{% endif %}
+        <label class="file-btn" for="id_clave_firma_electronica">Seleccionar archivo</label>
+        <input id="id_clave_firma_electronica" name="clave_firma_electronica" type="file" accept=".p12,.pfx">
+        <div class="file-info" id="file-name-firma">Ningún archivo seleccionado</div>
+        <div class="file-types">Permitidos: .p12, .pfx | Máx: 5MB</div>
+        {% if form.clave_firma_electronica.errors %}<small class="form-text text-danger">{{ form.clave_firma_electronica.errors }}</small>{% endif %}
+      </div>
+    </div>
+    <div class="form-group-contact" style="min-width: 300px;">
+      <label for="{{ form.password_p12.id_for_label }}">{{ form.password_p12.label }}</label>
+      {{ form.password_p12 }}
+      <small style="color: #666; display: block; margin-top: 4px;">{{ form.password_p12.help_text }}</small>
+      {% if form.password_p12.errors %}<small class="form-text text-danger">{{ form.password_p12.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+  var fileInput = document.getElementById('id_clave_firma_electronica');
+  var fileName = document.getElementById('file-name-firma');
+  if(fileInput && fileName) {
+    fileInput.addEventListener('change', function() {
+      fileName.textContent = this.files[0]?.name || 'Ningún archivo seleccionado';
+    });
+  }
+});
+  </script>
+</div>
+<div class="form-section-email">
+  <h3><i class="fas fa-envelope text-danger"></i> Configuración de Email (Gmail)</h3>
+  <div style="background-color: #17a2b8; color: #fff; padding: 14px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9em;">
+    <strong style="display: block; margin-bottom: 8px;">Pasos para obtener contraseña de aplicación:</strong>
+    1. Ve a <a href="https://myaccount.google.com" target="_blank" style="color: #fff; text-decoration: underline;">myaccount.google.com</a><br>
+    2. Entra en "Seguridad"<br>
+    3. Activa "Verificación en dos pasos"<br>
+    4. Busca "Contraseñas de aplicaciones"<br>
+    5. Genera contraseña para "Correo" y cópiala aquí
+  </div>
+  <div class="form-row-email">
+    <div class="form-group-email">
+      <label for="{{ form.servidor_correo.id_for_label }}">{{ form.servidor_correo.label }}</label>
+      {{ form.servidor_correo }}
+      {% if form.servidor_correo.errors %}<small class="form-text text-danger">{{ form.servidor_correo.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group-email">
+      <label for="{{ form.puerto_servidor_correo.id_for_label }}">{{ form.puerto_servidor_correo.label }}</label>
+      {{ form.puerto_servidor_correo }}
+      {% if form.puerto_servidor_correo.errors %}<small class="form-text text-danger">{{ form.puerto_servidor_correo.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row-email">
+    <div class="form-group-email">
+      <label for="{{ form.username_servidor_correo.id_for_label }}">{{ form.username_servidor_correo.label }}</label>
+      {{ form.username_servidor_correo }}
+      {% if form.username_servidor_correo.errors %}<small class="form-text text-danger">{{ form.username_servidor_correo.errors }}</small>{% endif %}
+    </div>
+    <div class="form-group-email">
+      <label for="{{ form.password_servidor_correo.id_for_label }}">{{ form.password_servidor_correo.label }}</label>
+      {{ form.password_servidor_correo }}
+      {% if form.password_servidor_correo.errors %}<small class="form-text text-danger">{{ form.password_servidor_correo.errors }}</small>{% endif %}
+    </div>
+  </div>
+  <div class="form-row-email">
+    <div class="form-group-email">
+      <label for="{{ form.gmail_app_password.id_for_label }}">{{ form.gmail_app_password.label }}</label>
+      {{ form.gmail_app_password }}
+      {% if form.gmail_app_password.errors %}<small class="form-text text-danger">{{ form.gmail_app_password.errors }}</small>{% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ accion }} Cliente - Sistema de Ventas{% endblock %}
+
+{% block content_header %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-user-plus"></i> {{ accion }} Cliente
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="/dashboard/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'clientes:lista' %}">Clientes</a></li>
+                    <li class="breadcrumb-item active">{{ accion }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header bg-primary">
+        <h3 class="card-title">
+            <i class="fas fa-edit"></i> Formulario de Cliente
+        </h3>
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.id_cliente.id_for_label }}">ID Cliente *</label>
+                        {{ form.id_cliente }}
+                        {% if form.id_cliente.errors %}
+                            <div class="text-danger">{{ form.id_cliente.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.nombre.id_for_label }}">Nombre *</label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.apellido.id_for_label }}">Apellido *</label>
+                        {{ form.apellido }}
+                        {% if form.apellido.errors %}
+                            <div class="text-danger">{{ form.apellido.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.telefono.id_for_label }}">Teléfono *</label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="text-danger">{{ form.telefono.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.direccion.id_for_label }}">Dirección *</label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}
+                            <div class="text-danger">{{ form.direccion.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar
+            </button>
+            <a href="{% url 'clientes:lista' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

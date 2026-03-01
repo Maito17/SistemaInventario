@@ -1,0 +1,73 @@
+venv/
+venv/*
+.env
+*.pyc
+__pycache__/
+*.sqlite3
+media/
+staticfiles/
+.vscode/
+coverage/
+*.egg-info/
+# Python
+*.pyc
+__pycache__/
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+#staticfiles/
+media/
+
+# VS Code
+.vscode/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Archivos de entorno
+.env
+
+
+# Otros
+*.sqlite3
+*.db
+
+# MacOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Archivos de recolección de estáticos (Railway los generará allá)
+staticfiles/
+
+# Logs de Gunicorn (el servidor que usará Railway)
+gunicorn_access.log
+gunicorn_error.log
+
+# Archivos temporales de sistema
+Thumbs.db
+
+# Respaldos (no subir a GitHub - contienen datos sensibles)
+backup/respaldos/*.sql.gz
+backup/respaldos/*.tar.gz
+backup/logs/
+backup/datos_mysql_export.json
+
+# Certificados digitales
+media/firmas_electronicas/*.p12
+media/firmas_electronicas/*.pfx
+# Archivos de recolección de estáticos (Railway los generará allá)
+staticfiles/
+
+# Logs de Gunicorn (el servidor que usará Railway)
+gunicorn_access.log
+gunicorn_error.log
+
+# Archivos temporales de sistema
+Thumbs.db

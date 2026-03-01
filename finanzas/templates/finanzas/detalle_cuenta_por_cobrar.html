@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalle Cuenta por Cobrar{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Detalle - Venta #{{ cuenta.venta.id_venta }}</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Información General</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th>Cliente:</th>
+                        <td>{{ cuenta.venta.cliente.nombre|default:"Cliente sin nombre" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Venta #:</th>
+                        <td>{{ cuenta.venta.id_venta }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fecha Venta:</th>
+                        <td>{{ cuenta.venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fecha Vencimiento:</th>
+                        <td>
+                            {% if cuenta.fecha_vencimiento %}
+                                {{ cuenta.fecha_vencimiento|date:"d/m/Y" }}
+                            {% else %}
+                                Sin vencimiento
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Estado:</th>
+                        <td>
+                            <span class="badge 
+                                {% if cuenta.estado == 'PAGADA' %}badge-success
+                                {% elif cuenta.estado == 'PARCIAL' %}badge-warning
+                                {% else %}badge-danger{% endif %}">
+                                {{ cuenta.get_estado_display }}
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Resumen Financiero</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Monto Total</span>
+                                <span class="info-box-number">${{ cuenta.monto_total|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Monto Cobrado</span>
+                                <span class="info-box-number">${{ cuenta.monto_cobrado|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-warning"><i class="fas fa-exclamation"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">Saldo Pendiente</span>
+                                <span class="info-box-number">${{ cuenta.saldo|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Amortización -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">Tabla de Amortización</h3>
+        {% if cuenta.estado != 'PAGADA' %}
+        <div class="card-tools">
+            <a href="{% url 'finanzas:registrar_cobro_cliente' cuenta.id %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Registrar Cobro
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if amortizaciones %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Cuota</th>
+                        <th>Monto Cobrado</th>
+                        <th>Saldo Anterior</th>
+                        <th>Saldo Nuevo</th>
+                        <th>Método de Pago</th>
+                        <th>Referencia</th>
+                        <th>Fecha de Cobro</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for amortizacion in amortizaciones %}
+                    <tr>
+                        <td><strong>#{{ amortizacion.numero_cuota }}</strong></td>
+                        <td>${{ amortizacion.monto_cobrado|floatformat:2 }}</td>
+                        <td>${{ amortizacion.saldo_anterior|floatformat:2 }}</td>
+                        <td><strong>${{ amortizacion.saldo_nuevo|floatformat:2 }}</strong></td>
+                        <td>{{ amortizacion.get_metodo_pago_display }}</td>
+                        <td>{{ amortizacion.referencia|default:"—" }}</td>
+                        <td>{{ amortizacion.fecha_cobro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ amortizacion.notas|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No hay registros de cobro aún.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'finanzas:lista_cuentas_por_cobrar' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+{% endblock content %}

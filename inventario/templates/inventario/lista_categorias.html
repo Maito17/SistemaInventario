@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Categorías{% endblock title %}
+
+{% block content_header %}
+<h1 class="m-0">Lista de Categorías</h1>
+{% endblock content_header %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Categorías Registradas</h3>
+        <div class="card-tools">
+            <a href="{% url 'inventario:categoria_crear' %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Agregar Nueva Categoría
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table id="categorias-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categoria in categorias %}
+                <tr>
+                    <td>{{ categoria.pk }}</td>
+                    <td>{{ categoria.nombre }}</td>
+                    <td>{{ categoria.descripcion|default:"Sin descripción" }}</td>
+                    <td>
+                        <a href="{% url 'inventario:editar_categoria' categoria.pk %}" 
+                           class="btn btn-warning btn-xs" 
+                           title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'inventario:eliminar_categoria' categoria.pk %}" 
+                           class="btn btn-danger btn-xs" 
+                           title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No hay categorías registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Paginación -->
+        {% include "includes/pagination.html" %}
+    </div>
+</div>
+{% endblock content %}

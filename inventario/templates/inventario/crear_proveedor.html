@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Crear Proveedor{% endblock title %}
+
+{% block content_header %}
+    <h1 class="m-0">Registrar Nuevo Proveedor</h1>
+{% endblock content_header %}
+
+{% block content %}
+    <div class="card card-primary">
+        <div class="card-header">
+            <h3 class="card-title">Información del Proveedor</h3>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                
+                <div class="card-header bg-dark p-2 mb-3">
+                    <h5 class="card-title m-0">Información del Proveedor</h5>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.id_proveedor.label_tag }}
+                    {{ form.id_proveedor }}
+                    {% if form.id_proveedor.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.id_proveedor.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.nombre.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.contacto.label_tag }}
+                    {{ form.contacto }}
+                    {% if form.contacto.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.contacto.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-header bg-dark p-2 mb-3 mt-4">
+                    <h5 class="card-title m-0">Detalles de Contacto</h5>
+                </div>
+                <div class="form-group">
+                    {{ form.telefono.label_tag }}
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.telefono.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.email.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        Por favor, corrige los errores del formulario.
+                    </div>
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Guardar Proveedor</button>
+                <a href="{% url 'inventario:proveedores_lista' %}" class="btn btn-default float-right">Cancelar</a>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

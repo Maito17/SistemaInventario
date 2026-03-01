@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Respaldos disponibles{% endblock %}
+{% block content_header %}
+<h1 class="m-0">Respaldos disponibles para descarga</h1>
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Listado de archivos de respaldo</h3>
+    </div>
+    <div class="card-body">
+        {% if respaldos %}
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tamaño (MB)</th>
+                    <th>Fecha de creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for respaldo in respaldos %}
+                <tr>
+                    <td>{{ respaldo.nombre }}</td>
+                    <td>{{ respaldo.tamano|floatformat:2 }}</td>
+                    <td>{{ respaldo.fecha_creacion|date:'d/m/Y H:i' }}</td>
+                    <td>
+                        <a href="{% url 'reportes:descargar_respaldo' respaldo.nombre %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-download"></i> Descargar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">No hay respaldos disponibles.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

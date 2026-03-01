@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Solicitud de Crédito{% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Solicitud de Crédito</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_solicitudes_credito' %}">Solicitudes</a></li>
+          <li class="breadcrumb-item active">Nueva Solicitud</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card card-info">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-credit-card"></i> Crear Nueva Solicitud de Crédito
+            </h3>
+          </div>
+          
+          <form method="POST" class="form-horizontal">
+            {% csrf_token %}
+            
+            <div class="card-body">
+              <!-- Cliente con búsqueda -->
+              <div class="form-group">
+                <label for="cliente-search">
+                  <i class="fas fa-user"></i> Cliente <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       id="cliente-search"
+                       class="form-control"
+                       placeholder="Buscar cliente por nombre, email o teléfono..."
+                       autocomplete="off">
+                
+                <!-- Contenedor de resultados de búsqueda -->
+                <div id="cliente-search-results"
+                     class="mt-2"
+                     style="max-height: 200px; overflow-y: auto; display: none;">
+                </div>
+                
+                <!-- Cliente seleccionado -->
+                <input type="hidden" id="cliente-select" name="cliente" value="" required>
+                <div class="mt-2 p-3 bg-light rounded" id="cliente-seleccionado-display" style="display: none;">
+                  <small class="text-muted">
+                    <i class="fas fa-user-check"></i> Cliente:
+                    <strong id="cliente-nombre-display"></strong>
+                  </small>
+                  <div style="margin-top: 8px;">
+                    <small class="text-muted">
+                      <i class="fas fa-envelope"></i> Email:
+                      <span id="cliente-email-display"></span>
+                    </small>
+                  </div>
+                  <div style="margin-top: 8px;">
+                    <small class="text-muted">
+                      <i class="fas fa-phone"></i> Teléfono:
+                      <span id="cliente-telefono-display"></span>
+                    </small>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Monto Solicitado -->
+              <div class="form-group">
+                <label for="monto_solicitado">
+                  <i class="fas fa-dollar-sign"></i> Monto Solicitado <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       name="monto_solicitado" 
+                       id="monto_solicitado" 
+                       class="form-control" 
+                       step="0.01" 
+                       placeholder="0.00"
+                       value="{{ monto }}"
+                       required>
+              </div>
+              
+              <!-- Plazo -->
+              <div class="form-group">
+                <label for="plazo_dias">
+                  <i class="fas fa-calendar"></i> Plazo (días)
+                </label>
+                <input type="number" 
+                       name="plazo_dias" 
+                       id="plazo_dias" 
+                       class="form-control" 
+                       value="30"
+                       min="1">
+              </div>
+              
+              <!-- Búsqueda de Productos -->
+              <div class="form-group">
+                <label for="producto-search">
+                  <i class="fas fa-box"></i> Productos a Financiar
+                </label>
+                <input type="text"
+                       id="producto-search"
+                       class="form-control"
+                       placeholder="Buscar producto por nombre o código..."
+                       autocomplete="off">
+                
+                <!-- Contenedor de resultados de búsqueda -->
+                <div id="producto-search-results"
+                     class="mt-2"
+                     style="max-height: 250px; overflow-y: auto; display: none;">
+                </div>
+                
+                <!-- Tabla de productos seleccionados -->
+                <div class="mt-3" id="productos-seleccionados-container" style="display: none;">
+                  <h6>Productos Seleccionados:</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered" id="productos-tabla">
+                      <thead class="bg-light">
+                        <tr>
+                          <th>Producto</th>
+                          <th style="width: 15%">Cantidad</th>
+                          <th style="width: 15%">Precio</th>
+                          <th style="width: 10%">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody id="productos-tbody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <!-- Campo oculto con JSON de productos -->
+                <textarea name="productos_detalle" 
+                          id="productos_detalle" 
+                          class="form-control" 
+                          rows="3" 
+                          placeholder="Los productos seleccionados aparecerán aquí..."
+                          style="display: none;"></textarea>
+              </div>
+              
+              <!-- Motivo -->
+              <div class="form-group">
+                <label for="motivo">
+                  <i class="fas fa-comment"></i> Motivo o Descripción
+                </label>
+                <textarea name="motivo" 
+                          id="motivo" 
+                          class="form-control" 
+                          rows="3" 
+                          placeholder="Explica el motivo de la solicitud..."></textarea>
+              </div>
+            </div>
+            
+            <div class="card-footer">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-check"></i> Crear Solicitud
+              </button>
+              <a href="{% url 'finanzas:lista_solicitudes_credito' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Panel de Información -->
+      <div class="col-md-4">
+        <div class="card card-outline card-info">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-info-circle"></i> Información
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <strong>¿Qué es una Solicitud de Crédito?</strong>
+              <p>Una solicitud de crédito es el primer paso para que un cliente pueda comprar productos a crédito. Una vez aprobada, el cliente podrá realizar compras sin pago inmediato.</p>
+            </div>
+            
+            <div class="alert alert-warning">
+              <strong>Pasos siguientes:</strong>
+              <ol>
+                <li>Completar la solicitud con los datos del cliente</li>
+                <li>Esperar aprobación del administrador</li>
+                <li>Una vez aprobada, registrar la venta a crédito</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const clienteSearchInput = document.getElementById('cliente-search');
+  const clienteSearchResults = document.getElementById('cliente-search-results');
+  const clienteSelect = document.getElementById('cliente-select');
+  const clienteSeleccionadoDisplay = document.getElementById('cliente-seleccionado-display');
+  const clienteNombreDisplay = document.getElementById('cliente-nombre-display');
+  const clienteEmailDisplay = document.getElementById('cliente-email-display');
+  const clienteTelefonoDisplay = document.getElementById('cliente-telefono-display');
+
+  // Búsqueda de clientes
+  clienteSearchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    
+    if (query.length < 1) {
+      clienteSearchResults.innerHTML = '';
+      clienteSearchResults.style.display = 'none';
+      return;
+    }
+
+    // Mostrar spinner de carga
+    clienteSearchResults.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Buscando clientes...</div>';
+    clienteSearchResults.style.display = 'block';
+
+    // Realizar búsqueda AJAX
+    fetch(`{% url 'clientes:buscar_api' %}?q=${encodeURIComponent(query)}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Respuesta:', data);
+        
+        if (data.error) {
+          clienteSearchResults.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+          clienteSearchResults.style.display = 'block';
+          return;
+        }
+        
+        if (data.clientes && data.clientes.length > 0) {
+          let html = '<div class="list-group">';
+          data.clientes.forEach(cliente => {
+            html += `
+              <a href="#" class="list-group-item list-group-item-action cliente-item" 
+                 data-id="${cliente.id}" 
+                 data-nombre="${cliente.nombre}"
+                 data-email="${cliente.email || ''}"
+                 data-telefono="${cliente.telefono || 'N/A'}">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1"><i class="fas fa-user"></i> ${cliente.nombre}</h6>
+                </div>
+                <small><i class="fas fa-envelope"></i> ${cliente.email || 'Sin email'}</small>
+              </a>
+            `;
+          });
+          html += '</div>';
+          clienteSearchResults.innerHTML = html;
+          clienteSearchResults.style.display = 'block';
+
+          // Event listeners para seleccionar cliente
+          document.querySelectorAll('.cliente-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+              e.preventDefault();
+              const clienteId = this.getAttribute('data-id');
+              const clienteNombre = this.getAttribute('data-nombre');
+              const clienteEmail = this.getAttribute('data-email');
+              const clienteTelefono = this.getAttribute('data-telefono');
+
+              // Actualizar valores ocultos
+              clienteSelect.value = clienteId;
+              clienteSearchInput.value = clienteNombre;
+
+              // Mostrar cliente seleccionado
+              clienteNombreDisplay.textContent = clienteNombre;
+              clienteEmailDisplay.textContent = clienteEmail;
+              clienteTelefonoDisplay.textContent = clienteTelefono;
+              clienteSeleccionadoDisplay.style.display = 'block';
+
+              // Ocultar resultados
+              clienteSearchResults.innerHTML = '';
+              clienteSearchResults.style.display = 'none';
+            });
+          });
+        } else {
+          clienteSearchResults.innerHTML = '<div class="alert alert-info mt-2"><i class="fas fa-info-circle"></i> No se encontraron clientes</div>';
+          clienteSearchResults.style.display = 'block';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        clienteSearchResults.innerHTML = '<div class="alert alert-danger mt-2"><i class="fas fa-exclamation-triangle"></i> Error en la búsqueda: ' + error.message + '</div>';
+        clienteSearchResults.style.display = 'block';
+      });
+  });
+
+  // Si viene un cliente preseleccionado desde la URL
+  const clienteIdFromUrl = '{{ cliente_id }}';
+  if (clienteIdFromUrl) {
+    clienteSelect.value = clienteIdFromUrl;
+    const clienteNombre = '{{ cliente.nombre }}';
+    const clienteEmail = '{{ cliente.email }}';
+    const clienteTelefono = '{{ cliente.telefono }}' || 'N/A';
+    
+    if (clienteNombre) {
+      clienteSearchInput.value = clienteNombre;
+      clienteNombreDisplay.textContent = clienteNombre;
+      clienteEmailDisplay.textContent = clienteEmail;
+      clienteTelefonoDisplay.textContent = clienteTelefono;
+      clienteSeleccionadoDisplay.style.display = 'block';
+    }
+  }
+
+  // ===== BÚSQUEDA Y SELECCIÓN DE PRODUCTOS =====
+  const productoSearchInput = document.getElementById('producto-search');
+  const productoSearchResults = document.getElementById('producto-search-results');
+  const productosTbody = document.getElementById('productos-tbody');
+  const productosSeleccionadosContainer = document.getElementById('productos-seleccionados-container');
+  const productosDetalleTextarea = document.getElementById('productos_detalle');
+  const montoSolicitadoInput = document.getElementById('id_monto_solicitado');
+
+  // Variable para almacenar productos seleccionados
+  let productosSeleccionados = {};
+
+  // Event listener para búsqueda de productos
+  let productoSearchTimeout;
+  productoSearchInput.addEventListener('input', function() {
+    clearTimeout(productoSearchTimeout);
+    const query = this.value.trim();
+
+    // Si no hay texto, ocultar resultados
+    if (!query || query.length < 1) {
+      productoSearchResults.innerHTML = '';
+      productoSearchResults.style.display = 'none';
+      return;
+    }
+
+    // Mostrar spinner de carga
+    productoSearchResults.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Buscando productos...</div>';
+    productoSearchResults.style.display = 'block';
+
+    // Debounce para no hacer demasiadas búsquedas
+    productoSearchTimeout = setTimeout(() => {
+      fetch(`{% url 'inventario:buscar_productos_api' %}?q=${encodeURIComponent(query)}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Productos encontrados:', data);
+          
+          if (data.error) {
+            productoSearchResults.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> Error: ${data.error}</div>`;
+            productoSearchResults.style.display = 'block';
+            return;
+          }
+
+          if (data.productos && data.productos.length > 0) {
+            let html = '<div class="list-group">';
+            data.productos.forEach(producto => {
+              // Verificar si ya está seleccionado
+              const yaSeleccionado = productosSeleccionados.hasOwnProperty(producto.id);
+              html += `
+                <button type="button" class="list-group-item list-group-item-action producto-item ${yaSeleccionado ? 'active' : ''}"
+                   data-id="${producto.id}"
+                   data-nombre="${producto.nombre}"
+                   data-precio="${producto.precio}"
+                   data-cantidad-disponible="${producto.cantidad_disponible}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1"><i class="fas fa-box"></i> ${producto.nombre}</h6>
+                    <span class="badge badge-info">${producto.cantidad_disponible} disponibles</span>
+                  </div>
+                  <small><i class="fas fa-dollar-sign"></i> $${parseFloat(producto.precio).toFixed(2)}</small>
+                </button>
+              `;
+            });
+            html += '</div>';
+            productoSearchResults.innerHTML = html;
+            productoSearchResults.style.display = 'block';
+
+            // Event listeners para seleccionar producto
+            document.querySelectorAll('.producto-item').forEach(item => {
+              item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productoId = this.getAttribute('data-id');
+                const productoNombre = this.getAttribute('data-nombre');
+                const productoPrecio = parseFloat(this.getAttribute('data-precio'));
+                const cantidadDisponible = parseInt(this.getAttribute('data-cantidad-disponible'));
+
+                // Agregar o remover producto
+                if (productosSeleccionados.hasOwnProperty(productoId)) {
+                  delete productosSeleccionados[productoId];
+                  this.classList.remove('active');
+                } else {
+                  productosSeleccionados[productoId] = {
+                    id: productoId,
+                    nombre: productoNombre,
+                    precio: productoPrecio,
+                    cantidad: 1,
+                    cantidad_disponible: cantidadDisponible
+                  };
+                  this.classList.add('active');
+                }
+
+                // Actualizar tabla de productos seleccionados
+                actualizarTablaProductos();
+              });
+            });
+          } else {
+            productoSearchResults.innerHTML = '<div class="alert alert-info mt-2"><i class="fas fa-info-circle"></i> No se encontraron productos</div>';
+            productoSearchResults.style.display = 'block';
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          productoSearchResults.innerHTML = '<div class="alert alert-danger mt-2"><i class="fas fa-exclamation-triangle"></i> Error en la búsqueda: ' + error.message + '</div>';
+          productoSearchResults.style.display = 'block';
+        });
+    }, 300);
+  });
+
+  // Función para actualizar la tabla de productos
+  function actualizarTablaProductos() {
+    if (Object.keys(productosSeleccionados).length === 0) {
+      productosTbody.innerHTML = '';
+      productosSeleccionadosContainer.style.display = 'none';
+      productosDetalleTextarea.value = '[]';
+      montoSolicitadoInput.value = '0';
+      return;
+    }
+
+    productosSeleccionadosContainer.style.display = 'block';
+
+    let html = '';
+    let montoTotal = 0;
+    let productosJson = [];
+
+    Object.values(productosSeleccionados).forEach(producto => {
+      const subtotal = producto.precio * producto.cantidad;
+      montoTotal += subtotal;
+
+      html += `
+        <tr>
+          <td>${producto.nombre}</td>
+          <td>
+            <input type="number" class="form-control form-control-sm cantidad-input" 
+                   data-id="${producto.id}" min="1" max="${producto.cantidad_disponible}" 
+                   value="${producto.cantidad}" style="max-width: 80px;">
+          </td>
+          <td>$${parseFloat(producto.precio).toFixed(2)}</td>
+          <td>
+            <button type="button" class="btn btn-sm btn-danger eliminar-producto" 
+                    data-id="${producto.id}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+
+      productosJson.push({
+        id_producto: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: producto.cantidad
+      });
+    });
+
+    productosTbody.innerHTML = html;
+    productosDetalleTextarea.value = JSON.stringify(productosJson, null, 2);
+    montoSolicitadoInput.value = montoTotal.toFixed(2);
+
+    // Event listeners para cantidad
+    document.querySelectorAll('.cantidad-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const productoId = this.getAttribute('data-id');
+        const nuevaCantidad = parseInt(this.value);
+        const cantidadDisponible = parseInt(this.getAttribute('max'));
+
+        if (nuevaCantidad > cantidadDisponible) {
+          this.value = cantidadDisponible;
+          alert(`Solo hay ${cantidadDisponible} unidades disponibles`);
+        } else if (nuevaCantidad < 1) {
+          this.value = 1;
+        }
+
+        productosSeleccionados[productoId].cantidad = parseInt(this.value);
+        actualizarTablaProductos();
+      });
+    });
+
+    // Event listeners para eliminar producto
+    document.querySelectorAll('.eliminar-producto').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const productoId = this.getAttribute('data-id');
+        delete productosSeleccionados[productoId];
+
+        // Desmarcar en resultados de búsqueda si está visible
+        const productoItem = document.querySelector(`.producto-item[data-id="${productoId}"]`);
+        if (productoItem) {
+          productoItem.classList.remove('active');
+        }
+
+        actualizarTablaProductos();
+      });
+    });
+  }
+
+  // Limpiar búsqueda cuando se hace click fuera
+  document.addEventListener('click', function(e) {
+    if (e.target !== productoSearchInput && !productoSearchResults.contains(e.target)) {
+      // Opcionalmente ocultar resultados
+      // productoSearchResults.style.display = 'none';
+    }
+  });
+});
+</script>
+{% endblock %}

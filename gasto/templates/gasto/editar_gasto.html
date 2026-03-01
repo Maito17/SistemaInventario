@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Gasto #{{ gasto.id_gasto }} - Sistema POS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .form-section h5 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 1rem;
+    }
+    
+    .card-header-custom {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 mt-4">
+        <div class="col-md-8">
+            <h1 class="page-title">
+                <i class="fas fa-edit"></i> Editar Gasto #{{ gasto.id_gasto }}
+            </h1>
+            <p class="text-muted">Modifica los detalles del gasto</p>
+        </div>
+        <div class="col-md-4 text-right">
+            <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjeta Principal -->
+    <div class="card card-primary card-outline">
+        <div class="card-header card-header-custom">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-form"></i> Formulario de Edición
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Sección 1: Información General -->
+                <div class="form-section">
+                    <h5><i class="fas fa-info-circle"></i> Información General</h5>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="font-weight-bold">Tipo de Gasto</label>
+                            <input type="text" class="form-control form-control-lg" 
+                                   value="{{ gasto.tipo_gasto.get_nombre_display }}" disabled>
+                            <small class="form-text text-muted">No se puede cambiar el tipo</small>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="descripcion" class="font-weight-bold">
+                                <span class="text-danger">*</span> Descripción
+                            </label>
+                            <input type="text" name="descripcion" id="descripcion" class="form-control form-control-lg" 
+                                   required value="{{ gasto.descripcion }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="monto" class="font-weight-bold">
+                                <span class="text-danger">*</span> Monto ($)
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" name="monto" id="monto" class="form-control" required 
+                                       min="0" step="0.01" value="{{ gasto.monto }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="fecha_gasto" class="font-weight-bold">
+                                <span class="text-danger">*</span> Fecha del Gasto
+                            </label>
+                            <input type="date" name="fecha_gasto" id="fecha_gasto" class="form-control form-control-lg" 
+                                   required value="{{ gasto.fecha_gasto|date:'Y-m-d' }}">
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="estado" class="font-weight-bold">Estado</label>
+                            <select name="estado" id="estado" class="form-control form-control-lg">
+                                <option value="PENDIENTE" {% if gasto.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                                <option value="APROBADO" {% if gasto.estado == 'APROBADO' %}selected{% endif %}>Aprobado</option>
+                                <option value="RECHAZADO" {% if gasto.estado == 'RECHAZADO' %}selected{% endif %}>Rechazado</option>
+                                <option value="PAGADO" {% if gasto.estado == 'PAGADO' %}selected{% endif %}>Pagado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_pago" class="font-weight-bold">Fecha de Pago (Opcional)</label>
+                        <input type="date" name="fecha_pago" id="fecha_pago" class="form-control form-control-lg"
+                               value="{% if gasto.fecha_pago %}{{ gasto.fecha_pago|date:'Y-m-d' }}{% endif %}">
+                        <small class="form-text text-muted">Cuándo se realizó el pago</small>
+                    </div>
+                </div>
+
+                <!-- Detalles Específicos -->
+                {% if gasto.tipo_gasto.nombre == 'ADMINISTRACION' and gasto.detalle_admin %}
+                <div class="form-section">
+                    <h5><i class="fas fa-briefcase"></i> Detalles de Administración</h5>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="concepto_admin" class="font-weight-bold">Concepto</label>
+                            <select name="concepto_admin" id="concepto_admin" class="form-control form-control-lg">
+                                <option value="SALARIO" {% if gasto.detalle_admin.concepto == 'SALARIO' %}selected{% endif %}>Salarios del Personal</option>
+                                <option value="ALQUILER" {% if gasto.detalle_admin.concepto == 'ALQUILER' %}selected{% endif %}>Alquiler de Oficina</option>
+                                <option value="SERVICIOS" {% if gasto.detalle_admin.concepto == 'SERVICIOS' %}selected{% endif %}>Servicios Básicos</option>
+                                <option value="SEGUROS" {% if gasto.detalle_admin.concepto == 'SEGUROS' %}selected{% endif %}>Seguros</option>
+                                <option value="IMPUESTOS" {% if gasto.detalle_admin.concepto == 'IMPUESTOS' %}selected{% endif %}>Impuestos y Licencias</option>
+                                <option value="MANTENIMIENTO" {% if gasto.detalle_admin.concepto == 'MANTENIMIENTO' %}selected{% endif %}>Mantenimiento de Equipos</option>
+                                <option value="CAPACITACION" {% if gasto.detalle_admin.concepto == 'CAPACITACION' %}selected{% endif %}>Capacitación del Personal</option>
+                                <option value="OTROS" {% if gasto.detalle_admin.concepto == 'OTROS' %}selected{% endif %}>Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="responsable" class="font-weight-bold">Responsable</label>
+                            <input type="text" name="responsable" id="responsable" class="form-control form-control-lg"
+                                   value="{{ gasto.detalle_admin.responsable|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+                {% elif gasto.tipo_gasto.nombre == 'VENTA' and gasto.detalle_venta %}
+                <div class="form-section">
+                    <h5><i class="fas fa-chart-line"></i> Detalles de Venta</h5>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="concepto_venta" class="font-weight-bold">Concepto</label>
+                            <select name="concepto_venta" id="concepto_venta" class="form-control form-control-lg">
+                                <option value="SALARIO_VENDEDOR" {% if gasto.detalle_venta.concepto == 'SALARIO_VENDEDOR' %}selected{% endif %}>Salarios de Vendedores</option>
+                                <option value="COMISION" {% if gasto.detalle_venta.concepto == 'COMISION' %}selected{% endif %}>Comisiones</option>
+                                <option value="PUBLICIDAD" {% if gasto.detalle_venta.concepto == 'PUBLICIDAD' %}selected{% endif %}>Publicidad y Marketing</option>
+                                <option value="EMPAQUE" {% if gasto.detalle_venta.concepto == 'EMPAQUE' %}selected{% endif %}>Material de Empaque</option>
+                                <option value="TRANSPORTE" {% if gasto.detalle_venta.concepto == 'TRANSPORTE' %}selected{% endif %}>Transporte y Distribución</option>
+                                <option value="PROMOCION" {% if gasto.detalle_venta.concepto == 'PROMOCION' %}selected{% endif %}>Promociones y Descuentos</option>
+                                <option value="OTROS" {% if gasto.detalle_venta.concepto == 'OTROS' %}selected{% endif %}>Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="beneficiario" class="font-weight-bold">Beneficiario</label>
+                            <input type="text" name="beneficiario" id="beneficiario" class="form-control form-control-lg"
+                                   value="{{ gasto.detalle_venta.beneficiario|default:'' }}">
+                        </div>
+
+                        <div class="form-group col-md-4">
+                            <label for="canal" class="font-weight-bold">Canal</label>
+                            <input type="text" name="canal" id="canal" class="form-control form-control-lg"
+                                   value="{{ gasto.detalle_venta.canal|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Notas -->
+                <div class="form-section">
+                    <h5><i class="fas fa-sticky-note"></i> Notas</h5>
+                    <textarea name="notas" id="notas" class="form-control" rows="3">{{ gasto.notas|default:'' }}</textarea>
+                </div>
+
+                <!-- Botones -->
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a href="{% url 'gasto:lista_gastos' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
